@@ -1,0 +1,31 @@
+﻿<Window x:Class="SampleWpf.Views.LoginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:SampleWpf.ViewModels"
+        xmlns:local="clr-namespace:SampleWpf.Views"
+        WindowStartupLocation="CenterOwner"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance vm:LoginViewModel}"
+        Title="LoginWindow" 
+        Background="#eee"
+        Height="350" Width="400">
+    <Grid VerticalAlignment="Center"
+          HorizontalAlignment="Center">
+        <StackPanel Width="200">
+            <TextBlock Text="Email"/>
+            <TextBox Text="{Binding Email.RawValue, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBlock Text="{Binding Email.TextError}"
+                       Foreground="Red"/>
+
+            <TextBlock Text="Password"/>
+            <TextBox Text="{Binding Password.RawValue, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBlock Text="{Binding Password.TextError}"
+                       Foreground="Red"/>
+
+            <Button Margin="0,10,0,0"
+                    Command="{Binding CommandLogin}">Login</Button>
+        </StackPanel>
+    </Grid>
+</Window>
