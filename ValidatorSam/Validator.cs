@@ -3,29 +3,35 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
 using ValidatorSam.Core;
 
 #nullable enable
 namespace ValidatorSam
 {
-    public abstract partial class Validator : INotifyPropertyChanged
+    public delegate void EventHandlerSure<T>(Validator invoker, T args);
+
+    public abstract class Validator : INotifyPropertyChanged
     {
-        protected readonly List<Func<ValidatorPreprocessArgs, PreprocessResult>> _preprocess =
+        internal readonly List<Func<ValidatorPreprocessArgs, PreprocessResult>> _preprocess =
             new List<Func<ValidatorPreprocessArgs, PreprocessResult>>();
 
         private object? _value;
         private string? _rawValue;
-        private bool _isEnabled = true;
+        internal bool _isEnabled = true;
         private string? _textError;
         private bool _isValid;
-        protected string? _requiredText;
-        private bool _isRequired;
-        private string? _name;
+        internal string? _requiredText;
+        internal bool _isRequired;
+        private string _name;
+        internal bool _isGenericStringType;
+
 
         public event PropertyChangedEventHandler? PropertyChanged;
-        public event EventHandler<ValidatorErrorTextArgs>? ErrorChanged;
-        public event EventHandler<ValidatorValueChangedArgs>? ValueChanged;
-        public event EventHandler<bool>? EnabledChanged;
+        public event EventHandlerSure<ValidatorErrorTextArgs>? ErrorChanged;
+        public event EventHandlerSure<ValidatorValueChangedArgs>? ValueChanged;
+        public event EventHandlerSure<bool>? EnabledChanged;
 
         #region props
         public object? Value
@@ -35,14 +41,16 @@ namespace ValidatorSam
             {
                 var oldValue = _value;
                 var castResult = CastValue(_value, value);
-                _value = castResult.Result;
+                _value = castResult.ValueResult;
                 _rawValue = castResult.TextResult;
 
-                var res = InternalCheckValid(_value);
+                var res = InternalCheckValid(_value, castResult);
+
                 IsValid = res.IsValid;
                 TextError = res.TextError;
                 ErrorChanged?.Invoke(this, ValidatorErrorTextArgs.Calc(!res.IsValid, res.TextError));
                 ValueChanged?.Invoke(this, new ValidatorValueChangedArgs(oldValue, _value));
+                ThrowValueChangeListener(oldValue, _value);
                 OnPropertyChanged(nameof(Value));
                 OnPropertyChanged(nameof(RawValue));
             }
@@ -57,7 +65,7 @@ namespace ValidatorSam
         public bool IsEnabled
         {
             get => _isEnabled;
-            private set
+            set
             {
                 _isEnabled = value;
                 OnPropertyChanged(nameof(IsEnabled));
@@ -103,7 +111,7 @@ namespace ValidatorSam
         public string Name
         {
             get => _name; /*?? new StackTrace().GetFrame(1).Get;*/
-            private set => _name = value;
+            internal set => _name = value;
         }
         #endregion props
 
@@ -111,6 +119,7 @@ namespace ValidatorSam
         protected abstract bool CanNotBeNull { get; }
         protected abstract object CreateDefaultValue();
         protected abstract ValidatorResult ExecuteRule(object? value, int ruleId);
+        protected abstract void ThrowValueChangeListener(object? oldValue, object? newValue);
         protected abstract bool TryCastValue(object? value, out object? cast);
         protected abstract object? CastValue(object value);
 
@@ -132,6 +141,12 @@ namespace ValidatorSam
                     newStr = newestAsString;
             }
 
+            if (_isGenericStringType)
+            {
+                oldStr = old as string;
+                newStr = newest as string;
+            }
+
             var final = newestT;
             var args = new ValidatorPreprocessArgs
             {
@@ -142,16 +157,20 @@ namespace ValidatorSam
                 NewValue = newestT,
             };
 
-            PreprocessResult? triggerPreprocessor = null;
+            PreprocessResult? completedPreprocessor = null;
             foreach (var item in _preprocess)
             {
                 var preprocessResult = item.Invoke(args);
-                if (preprocessResult.IsSkip)
+                if (preprocessResult.Type == PreprocessTypeResult.Ignore)
                     continue;
 
-                triggerPreprocessor = preprocessResult;
-                final = preprocessResult.Result;
-                break;
+                completedPreprocessor = preprocessResult;
+                final = preprocessResult.ValueResult;
+
+                if (preprocessResult.Type == PreprocessTypeResult.Error)
+                    break;
+                else
+                    args = preprocessResult.AsArg(args);
             }
 
             // catch value for elementary type (int, 
@@ -160,12 +179,14 @@ namespace ValidatorSam
 
             return new PreprocessResult
             {
-                TextResult = triggerPreprocessor?.TextResult ?? final?.ToString(),
-                Result = final,
+                Type = completedPreprocessor?.Type ?? PreprocessTypeResult.Success,
+                ErrorText = completedPreprocessor?.ErrorText,
+                TextResult = completedPreprocessor?.TextResult ?? final?.ToString(),
+                ValueResult = final,
             };
         }
 
-        private ValidatorResult InternalCheckValid(object? genericValue)
+        private ValidatorResult InternalCheckValid(object? genericValue, PreprocessResult castResult)
         {
             bool isValid = true;
             string? textError = null;
@@ -181,6 +202,11 @@ namespace ValidatorSam
                     textError = _requiredText;
                     goto skip;
                 }
+            }
+
+            if (castResult.ErrorText != null)
+            {
+                return new ValidatorResult(false, castResult.ErrorText, _name);
             }
 
             for (int i = 0; i < RuleCount; i++)
@@ -235,12 +261,52 @@ namespace ValidatorSam
         {
             //var value = CastValue(Value);
 
-            var res = InternalCheckValid(Value);
+            var res = InternalCheckValid(Value, new PreprocessResult());
             IsValid = res.IsValid;
             TextError = res.TextError;
+            ErrorChanged?.Invoke(this, ValidatorErrorTextArgs.Calc(!res.IsValid, res.TextError));
             return res;
         }
-        #endregion public methods
+
+        public static Validator[] GetAll(object validatorHoster)
+        {
+            var list = new List<Validator>();
+            var t = validatorHoster.GetType();
+            var f = t.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            foreach (var item in f)
+            {
+                if (item.PropertyType.BaseType == typeof(Validator))
+                {
+                    var v = item.GetValue(validatorHoster);
+                    if (v is Validator validator)
+                        list.Add(validator);
+                }
+                else if (item.PropertyType
+                    .GetInterfaces()
+                    .Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
+                {
+                    var genericT = item.PropertyType.GenericTypeArguments.FirstOrDefault();
+                    if (genericT == null)
+                        continue;
+
+                    if (genericT.GetInterfaces().Any(x => x == typeof(IValidatorHost)))
+                    {
+                        var v = item.GetValue(validatorHoster);
+                        if (v is IEnumerable<IValidatorHost> vv)
+                        {
+                            foreach (var i in vv)
+                            {
+                                var ims = GetAll(i);
+                                if (ims != null && ims.Length > 0)
+                                    list.AddRange(ims);
+                            }
+                        }
+                    }
+                }
+            }
+            return list.ToArray();
+        }
     }
+    #endregion public methods
 }
 #nullable disable

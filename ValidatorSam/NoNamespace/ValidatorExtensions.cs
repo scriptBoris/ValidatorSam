@@ -1,24 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using ValidatorSam.Internal;
 
+#nullable enable
 namespace ValidatorSam
 {
     public static class ValidatorExtensions
     {
-        public static Validator<T?> UsingSafeRule<T>(this Validator<T?> self, Func<T, bool> rule, string error)
+        public static T ValueOrDefault<T>(this Validator<T?> validator)
             where T : struct
         {
-            self._rules.Add(new RuleItem<T?>
+            if (validator.Value == null)
+                return default(T);
+
+            return validator.Value.Value;
+        }
+
+        public static bool CheckSuccess(this Validator[] validators)
+        {
+            var result = new ValidatorResult(true, null, "none");
+
+            foreach (var item in validators)
             {
-                IsSafeRule = true,
-                ErrorText = error,
-                Delegate = (x) => rule(x.Value),
-            });
-            return self;
+                var res = item.CheckValid();
+                if (!res.IsValid)
+                    result = res;
+            }
+
+            return result.IsValid;
         }
 
         public static ValidatorResult FirstInvalid(this Validator[] validators)
@@ -36,3 +45,4 @@ namespace ValidatorSam
         }
     }
 }
+#nullable enable

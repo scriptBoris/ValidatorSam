@@ -88,10 +88,10 @@ namespace ValidatorSam.Internal
             where T : struct
         {
             if (!args.IsString)
-                return new PreprocessResult { IsSkip = true };
+                return new PreprocessResult { Type = PreprocessTypeResult.Ignore };
 
             if (string.IsNullOrEmpty(args.StringNewValue))
-                return new PreprocessResult { Result = null };
+                return new PreprocessResult { ValueResult = null };
 
             var parser = new NumbericTryParse<T>();
             string logic = args.StringNewValue.Replace(" ", "");
@@ -127,7 +127,7 @@ namespace ValidatorSam.Internal
 
             return new PreprocessResult
             {
-                Result = res,
+                ValueResult = res,
                 TextResult = text,
             };
         }

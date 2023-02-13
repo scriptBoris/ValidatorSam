@@ -8,52 +8,20 @@ using ValidatorSam.Internal;
 #nullable enable
 namespace ValidatorSam
 {
-    public partial class Validator<T> : Validator
+    public class Validator<T> : Validator
     {
         internal readonly List<RuleItem<T>> _rules = new List<RuleItem<T>>();
-        private readonly bool _isGenericStringType;
+        internal readonly List<Action<ValidatorValueChangedArgs<T>>> _changeListeners = new List<Action<ValidatorValueChangedArgs<T>>>();
         private readonly bool _canNotBeNull;
 
-        public Validator()
+        internal Validator()
         {
             var genericType = typeof(T);
             _isGenericStringType = genericType == typeof(string);
             _canNotBeNull = genericType.IsValueType;
-            ResolveAutoCast(genericType);
 
             if (_canNotBeNull)
-                SetValueAsRat(default(T));
-        }
-
-        private void ResolveAutoCast(Type type)
-        {
-            var nullableGenericType = Nullable.GetUnderlyingType(type);
-            if (nullableGenericType != null)
-                type = nullableGenericType;
-
-            switch (Type.GetTypeCode(type))
-            {
-                case TypeCode.Byte:
-                case TypeCode.SByte:
-                case TypeCode.UInt16:
-                case TypeCode.UInt32:
-                case TypeCode.UInt64:
-                case TypeCode.Int16:
-                    break;
-                case TypeCode.Int32:
-                    UsingPreprocessor(PreprocessorCollection.CastInt32);
-                    break;
-                case TypeCode.Int64:
-                case TypeCode.Decimal:
-                    break;
-                case TypeCode.Double:
-                    UsingPreprocessor(PreprocessorCollection.CastDouble);
-                    break;
-                case TypeCode.Single:
-                    break;
-                default:
-                    break;
-            }
+                SetValueAsRat(default(T)!);
         }
 
         public new T Value
@@ -96,6 +64,24 @@ namespace ValidatorSam
             return new ValidatorResult(isValid, error, Name);
         }
 
+        protected override void ThrowValueChangeListener(object? oldValue, object? newValue)
+        {
+            if (oldValue is T tOld) { }
+            else { 
+                tOld = default(T);
+            }
+
+            if (newValue is T tNew) { }
+            else {
+                tNew = default(T);
+            }
+
+            foreach (var item in _changeListeners)
+            {
+                item.Invoke(new ValidatorValueChangedArgs<T>(tOld!, tNew!));
+            }
+        }
+
         protected override object CreateDefaultValue()
         {
             var res = default(T);
@@ -121,6 +107,11 @@ namespace ValidatorSam
                 cast = default(T);
                 return false;
             }
+        }
+
+        public static implicit operator T(Validator<T> v)
+        {
+            return v.Value;
         }
     }
 }
