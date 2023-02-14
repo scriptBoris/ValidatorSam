@@ -89,6 +89,12 @@ namespace ValidatorSam
             return this;
         }
 
+        public ValidatorBuilder<T> UsingValue(T value)
+        {
+            Validator.SetValueAsRat(value);
+            return this;
+        }
+
         public ValidatorBuilder<T> UsingEnabledState(bool isEnabled)
         {
             if (isBuilded)

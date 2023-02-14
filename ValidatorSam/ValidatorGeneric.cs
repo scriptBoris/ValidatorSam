@@ -21,7 +21,7 @@ namespace ValidatorSam
             _canNotBeNull = genericType.IsValueType;
 
             if (_canNotBeNull)
-                SetValueAsRat(default(T)!);
+                SetValueAsRat(default(T));
         }
 
         public new T Value

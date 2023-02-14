@@ -244,7 +244,7 @@ namespace ValidatorSam
             return isEmpty;
         }
 
-        protected void SetValueAsRat(object value)
+        internal void SetValueAsRat(object? value)
         {
             _value = value;
             _rawValue = value?.ToString();
