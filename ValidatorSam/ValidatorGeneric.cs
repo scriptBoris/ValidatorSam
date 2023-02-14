@@ -21,18 +21,29 @@ namespace ValidatorSam
             _canNotBeNull = genericType.IsValueType;
 
             if (_canNotBeNull)
-                SetValueAsRat(default(T));
+                SetValueAsRat(default(T), true);
         }
 
         public new T Value
         {
             get
             {
-                if ((this as Validator).Value is T t)
+                if (base.Value is T t)
                     return t;
                 return default!;
             }
-            set => (this as Validator).Value = value;
+            set => base.Value = value;
+        }
+
+        public new T InitValue
+        {
+            get
+            {
+                if (base.InitValue is T t)
+                    return t;
+                return default!;
+            }
+            internal set => base.InitValue = value;
         }
 
         protected override int RuleCount => _rules.Count;

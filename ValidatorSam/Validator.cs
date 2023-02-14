@@ -62,6 +62,12 @@ namespace ValidatorSam
             set => Value = value;
         }
 
+        public object? InitValue 
+        {
+            get; 
+            internal set; 
+        }
+
         public bool IsEnabled
         {
             get => _isEnabled;
@@ -244,10 +250,15 @@ namespace ValidatorSam
             return isEmpty;
         }
 
-        internal void SetValueAsRat(object? value)
+        internal void SetValueAsRat(object? value, bool asInitValue)
         {
             _value = value;
             _rawValue = value?.ToString();
+
+            if (asInitValue)
+            {
+                InitValue = value;
+            }
         }
 
         private void OnPropertyChanged(string propertyName)

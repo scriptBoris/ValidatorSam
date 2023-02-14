@@ -91,7 +91,10 @@ namespace ValidatorSam
 
         public ValidatorBuilder<T> UsingValue(T value)
         {
-            Validator.SetValueAsRat(value);
+            if (isBuilded)
+                return this;
+
+            Validator.SetValueAsRat(value, true);
             return this;
         }
 
