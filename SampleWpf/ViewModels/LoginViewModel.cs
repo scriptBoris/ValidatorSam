@@ -17,13 +17,11 @@ namespace SampleWpf.ViewModels
         private object? _email;
         private object? _password;
 
-        public Validator<string> Email => _email as Validator<string> ??
-            Validator.GetOrBuild<string>(ref _email)
+        public Validator<string> Email => ValidatorBuilder<string>.Build(ref _email)
             .UsingRule(x => !MailAddress.TryCreate(x, out MailAddress? m), "No valid email")
             .UsingRequired();
 
-        public Validator<string> Password => _password as Validator<string> ??
-            Validator.GetOrBuild<string>(ref _password)
+        public Validator<string> Password => ValidatorBuilder<string>.Build(ref _password)
             .UsingRequired();
     }
 }
