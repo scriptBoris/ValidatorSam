@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using ValidatorSam.Core;
 using ValidatorSam.Internal;
 
 #nullable enable
@@ -51,7 +52,7 @@ namespace ValidatorSam
 
                 if (l < min)
                 {
-                    return new Core.PreprocessResult
+                    return new PreprocessResult
                     {
                         ErrorText = $"Минимум {min} символов",
                         ValueResult = x.StringNewValue,
@@ -59,14 +60,14 @@ namespace ValidatorSam
                 }
                 else if (l > max)
                 {
-                    return new Core.PreprocessResult
+                    return new PreprocessResult
                     {
                         ErrorText = $"Максимум {max} символов",
                         ValueResult = x.StringNewValue?.Substring(0, (int)max + 1)
                     };
                 }
 
-                return new Core.PreprocessResult { Type = Core.PreprocessTypeResult.Ignore };
+                return new PreprocessResult { Type = PreprocessTypeResult.Ignore };
             });
 
             return self;
@@ -105,13 +106,13 @@ namespace ValidatorSam
             return self;
         }
 
-        private static Core.PreprocessResult CommonLimitations(ValidatorPreprocessArgs arg, object min, object max)
+        private static PreprocessResult CommonLimitations(ValidatorPreprocessArgs arg, object min, object max)
         {
             if (arg.NewValue is IComparable nc)
             {
                 if (nc.CompareTo(min) < 0)
                 {
-                    return new Core.PreprocessResult
+                    return new PreprocessResult
                     {
                         ErrorText = $"Значение не может быть меньше {min}",
                         ValueResult = min,
@@ -120,7 +121,7 @@ namespace ValidatorSam
 
                 if (nc.CompareTo(max) > 0)
                 {
-                    return new Core.PreprocessResult
+                    return new PreprocessResult
                     {
                         ErrorText = $"Значение не может быть больше {max}",
                         ValueResult = max,
@@ -128,7 +129,7 @@ namespace ValidatorSam
                 }
             }
 
-            return new Core.PreprocessResult { Type = Core.PreprocessTypeResult.Ignore };
+            return new PreprocessResult { Type = PreprocessTypeResult.Ignore };
         }
     }
 }

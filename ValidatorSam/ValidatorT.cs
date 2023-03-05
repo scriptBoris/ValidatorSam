@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
-using ValidatorSam.Core;
 using ValidatorSam.Internal;
 
 #nullable enable
@@ -123,6 +123,22 @@ namespace ValidatorSam
         public static implicit operator T(Validator<T> v)
         {
             return v.Value;
+        }
+
+        /// <summary>
+        /// Auto-create singleton instance with using Fody code postprocessing
+        /// </summary>
+        public static ValidatorBuilder<T> Build()
+        {
+            return new ValidatorBuilder<T>();
+        }
+
+        /// <summary>
+        /// Manual create singleton instance
+        /// </summary>
+        public static ValidatorBuilder<T> Build(ref object? obj, [CallerMemberName] string propName = "NONE")
+        {
+            return ValidatorBuilder<T>.Build(ref obj, propName);
         }
     }
 }

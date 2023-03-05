@@ -14,17 +14,28 @@ using WpfTest.Core;
 
 namespace SampleWpf.ViewModels
 {
-    public class LoginViewModel : BaseViewModel
+    public class FodyTestViewModel: BaseViewModel
     {
         private Validator<string>? test;
 
-        public LoginViewModel()
+        public FodyTestViewModel()
         {
             Email.RawValue = "Boris@gmail.com";
 
             if (Email.RawValue == "")
             {
 
+            }
+        }
+
+        public Validator<string> Test
+        {
+            get
+            {
+                if (test == null)
+                    test = TEST_BUILDER();
+
+                return test;
             }
         }
 
@@ -43,11 +54,25 @@ namespace SampleWpf.ViewModels
             var res = validators.FirstInvalid();
             if (!res.IsValid)
             {
-                MessageBox.Show($"Field {res.Name}: {res.TextError}", "Fail");
-                return;
+                MessageBox.Show($"Field {res.Name}: {res.TextError}", res.IsValid ? "Success" : "Fail");
             }
-
-            MessageBox.Show($"You have successfully logged in");
         });
+
+
+
+        private Validator<string> TEST_RESOLVER()
+        {
+            if (test == null)
+                test = TEST_BUILDER();
+            return test;
+        }
+
+        private Validator<string> TEST_BUILDER()
+        {
+            return Validator<string>
+                .Build()
+                .UsingRule(x => !MailAddress.TryCreate(x, out MailAddress? m), "No valid email")
+                .UsingRequired();
+        }
     }
 }

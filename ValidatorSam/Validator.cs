@@ -10,8 +10,14 @@ using ValidatorSam.Core;
 #nullable enable
 namespace ValidatorSam
 {
+    /// <summary>
+    /// Default delegate validator
+    /// </summary>
     public delegate void EventHandlerSure<T>(Validator invoker, T args);
 
+    /// <summary>
+    /// Base class validator
+    /// </summary>
     public abstract class Validator : INotifyPropertyChanged
     {
         internal readonly List<Func<ValidatorPreprocessArgs, PreprocessResult>> _preprocess =
@@ -26,7 +32,6 @@ namespace ValidatorSam
         internal bool _isRequired;
         private string _name;
         internal bool _isGenericStringType;
-
 
         public event PropertyChangedEventHandler? PropertyChanged;
         public event EventHandlerSure<ValidatorErrorTextArgs>? ErrorChanged;
