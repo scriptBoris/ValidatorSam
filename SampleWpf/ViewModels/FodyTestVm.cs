@@ -24,7 +24,6 @@ namespace SampleWpf.ViewModels
 
             if (Email.RawValue == "")
             {
-
             }
         }
 
@@ -58,6 +57,12 @@ namespace SampleWpf.ViewModels
             }
         });
 
+
+        private void TEST_GETVALUE()
+        {
+            string email = Email.Value;
+            string password = Password.Value;
+        }
 
 
         private Validator<string> TEST_RESOLVER()

@@ -43,11 +43,14 @@ namespace SampleWpf.ViewModels
             var res = validators.FirstInvalid();
             if (!res.IsValid)
             {
-                MessageBox.Show($"Field {res.Name}: {res.TextError}", "Fail");
+                MessageBox.Show($"Field name \"{res.Name}\" error: {res.TextError}", "Fail");
                 return;
             }
 
-            MessageBox.Show($"You have successfully logged in");
+            string email = Email;
+            string pass = Password;
+            string fields = $"email: \"{email}\"\npass: \"{pass}\"";
+            MessageBox.Show($"You have successfully logged in\n" + fields);
         });
     }
 }
