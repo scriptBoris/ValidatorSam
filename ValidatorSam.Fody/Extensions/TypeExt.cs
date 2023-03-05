@@ -16,12 +16,13 @@ namespace ValidatorSam.Fody.Extensions
         public static bool IsUsingValidatorSam(this TypeDefinition type)
         {
             bool isAny = false;
+            DebugFile.WriteLine($"class {type.FullName}");
             foreach (var item in type.Properties)
             {
                 if (item.SetMethod != null)
                     continue;
 
-                if (item.GetMethod.IsMethodAutoGen())
+                if (item.GetMethod.IsMethodGetterValidator())
                     #if DEBUG
                     isAny = true;
                     #else
@@ -35,7 +36,7 @@ namespace ValidatorSam.Fody.Extensions
         public static void InjectFixInClass(this TypeDefinition classType, BaseModuleWeaver weaver)
         {
             var rand = new Random();
-            var getters = classType.Properties.Where(x => x.IsAutoValidator()).ToArray();
+            var getters = classType.Properties.Where(x => x.IsAutoValidator(false)).ToArray();
 
             foreach (var getterProp in getters)
             {
@@ -70,21 +71,9 @@ namespace ValidatorSam.Fody.Extensions
                 foreach (var item in vars)
                     newGetterMethod.Body.Variables.Add(item);
 
-                originGetterMethod.GenerateBody(newGetterMethod, field);
                 classType.Methods.Add(newGetterMethod);
+                originGetterMethod.GenerateBody(newGetterMethod, field);
             }
-        }
-
-        public static TypeReference MakeGeneric(this TypeReference self, params TypeReference[] arguments)
-        {
-            if (self.GenericParameters.Count != arguments.Length)
-                throw new ArgumentException();
-
-            var instance = new GenericInstanceType(self);
-            foreach (var argument in arguments)
-                instance.GenericArguments.Add(argument);
-
-            return instance;
         }
     }
 }

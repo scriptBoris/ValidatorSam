@@ -10,7 +10,7 @@ namespace ValidatorSam.Fody.Extensions
 {
     public static  class MethodExt
     {
-        public static bool IsMethodAutoGen(this MethodDefinition methodDefinition)
+        public static bool IsMethodGetterValidator(this MethodDefinition methodDefinition, bool usingDebug = true)
         {
             if (methodDefinition == null)
                 return false;
@@ -22,33 +22,32 @@ namespace ValidatorSam.Fody.Extensions
             if (il.OpCode == OpCodes.Call &&
                 il.Operand is MethodReference methodReference)
             {
-                DebugFile.WriteLine($"{methodDefinition.Name} => {methodReference.FullName}");
+                if (usingDebug)
+                    DebugFile.WriteLine($"   check is method \"{methodDefinition.Name}\" getter Validator<T> => {methodReference.FullName}");
 
-                if (methodReference.FullName == "ValidatorSam.ValidatorBuilder`1<!0> ValidatorSam.Validator`1<System.String>::Build()")
+                //if (methodReference.FullName == "ValidatorSam.ValidatorBuilder`1<!0> ValidatorSam.Validator`1<System.String>::Build()")
+                //    return true;
+
+                var returnTypeName = methodDefinition.ReturnType.FullName;
+                if (usingDebug)
+                    DebugFile.WriteLine($"      return type: {returnTypeName}");
+
+                var type = returnTypeName.ExtractTextInsideAngleBrackets();
+                string compareString = $"ValidatorSam.ValidatorBuilder`1<!0> ValidatorSam.Validator`1<{type}>::Build()";
+                if (methodReference.FullName == compareString)
+                {
+                    if (usingDebug)
+                        DebugFile.WriteLine($"      this is getter Validator<T>");
                     return true;
+                }
+                else
+                {
+                    if (usingDebug)
+                        DebugFile.WriteLine($"      compare string \"{compareString}\" - NO EQUAL");
+                }
             }
 
-
             return false;
-        }
-
-        public static MethodReference MakeGeneric(this MethodReference self, params TypeReference[] arguments)
-        {
-            var reference = new MethodReference(self.Name, self.ReturnType)
-            {
-                DeclaringType = self.DeclaringType.MakeGeneric(arguments),
-                HasThis = self.HasThis,
-                ExplicitThis = self.ExplicitThis,
-                CallingConvention = self.CallingConvention,
-            };
-
-            foreach (var parameter in self.Parameters)
-                reference.Parameters.Add(new ParameterDefinition(parameter.ParameterType));
-
-            foreach (var generic_parameter in self.GenericParameters)
-                reference.GenericParameters.Add(new GenericParameter(generic_parameter.Name, reference));
-
-            return reference;
         }
     }
 }

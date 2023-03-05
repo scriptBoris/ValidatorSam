@@ -14,10 +14,10 @@ namespace SampleWpf.ViewModels
 {
     public class LabViewModel : BaseViewModel
     {
-        private object? _stringField;
-        private object? _intField;
-        private object? _doubleField;
-        private object? _boolField;
+        //private object? _stringField;
+        //private object? _intField;
+        //private object? _doubleField;
+        //private object? _boolField;
 
         public LabViewModel()
         {
@@ -30,23 +30,42 @@ namespace SampleWpf.ViewModels
 
         public int MaxName { get; set; } = 20;
 
-        public Validator<string> StringField => Validator<string>.Build(ref _stringField)
+
+        public Validator<string> StringField => Validator<string>.Build()
             .UsingRule((x) => x.Length < 3, "Text so short")
             .UsingRule((x) => x.Length > 15, "Text so long")
             .UsingRequired();
 
-        public Validator<int?> IntField => Validator<int?>.Build(ref _intField)
+        public Validator<int?> IntField => Validator<int?>.Build()
             .UsingRule((x) => x < 0, "Cant be less zero")
             .UsingRule((x) => x < 18, "Cant be less 18")
             .UsingRequired();
 
-        public Validator<double?> DoubleField => Validator<double?>.Build(ref _doubleField)
+        public Validator<double?> DoubleField => Validator<double?>.Build()
             .UsingSafeRule((x) => x < 90, "Cant be less 90")
             .UsingSafeRule((x) => x > 90, "Cant be over 90")
             .UsingRequired();
 
-        public Validator<bool> BoolField => Validator<bool>.Build(ref _boolField)
+        public Validator<bool> BoolField => Validator<bool>.Build()
             .UsingRequired();
+
+        //public Validator<string> StringField => Validator<string>.Build(ref _stringField)
+        //    .UsingRule((x) => x.Length < 3, "Text so short")
+        //    .UsingRule((x) => x.Length > 15, "Text so long")
+        //    .UsingRequired();
+
+        //public Validator<int?> IntField => Validator<int?>.Build(ref _intField)
+        //    .UsingRule((x) => x < 0, "Cant be less zero")
+        //    .UsingRule((x) => x < 18, "Cant be less 18")
+        //    .UsingRequired();
+
+        //public Validator<double?> DoubleField => Validator<double?>.Build(ref _doubleField)
+        //    .UsingSafeRule((x) => x < 90, "Cant be less 90")
+        //    .UsingSafeRule((x) => x > 90, "Cant be over 90")
+        //    .UsingRequired();
+
+        //public Validator<bool> BoolField => Validator<bool>.Build(ref _boolField)
+        //    .UsingRequired();
 
         public ICommand CommandCheckValid => new Command(() =>
         {

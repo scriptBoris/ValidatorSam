@@ -10,7 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Fody" Version="6.6.4" />
     <ProjectReference Include="..\ValidatorSam\ValidatorSam.csproj" />
-	  <WeaverFiles Include="$(SolutionDir)ValidatorSam.Fody\bin\$(Configuration)\netstandard2.0\ValidatorSam.Fody.dll" />
+	<WeaverFiles Include="$(SolutionDir)ValidatorSam.Fody\bin\$(Configuration)\netstandard2.0\ValidatorSam.Fody.dll" />
   </ItemGroup>
 
 </Project>

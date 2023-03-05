@@ -16,7 +16,7 @@ namespace SampleWpf.ViewModels
 {
     public class FodyTestViewModel: BaseViewModel
     {
-        private Validator<string>? test;
+        private Validator<int?>? test;
 
         public FodyTestViewModel()
         {
@@ -24,17 +24,6 @@ namespace SampleWpf.ViewModels
 
             if (Email.RawValue == "")
             {
-            }
-        }
-
-        public Validator<string> Test
-        {
-            get
-            {
-                if (test == null)
-                    test = TEST_BUILDER();
-
-                return test;
             }
         }
 
@@ -65,18 +54,17 @@ namespace SampleWpf.ViewModels
         }
 
 
-        private Validator<string> TEST_RESOLVER()
+        private Validator<int?> TEST_RESOLVER()
         {
             if (test == null)
                 test = TEST_BUILDER();
             return test;
         }
 
-        private Validator<string> TEST_BUILDER()
+        private Validator<int?> TEST_BUILDER()
         {
-            return Validator<string>
+            return Validator<int?>
                 .Build()
-                .UsingRule(x => !MailAddress.TryCreate(x, out MailAddress? m), "No valid email")
                 .UsingRequired();
         }
     }

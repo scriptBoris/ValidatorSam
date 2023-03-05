@@ -21,6 +21,8 @@ namespace ValidatorSam
 
         internal ValidatorBuilder()
         {
+            var genericType = typeof(T);
+            ResolveAutoCast(genericType);
         }
 
         internal static ValidatorBuilder<T> Build(ref object? instance, string propName = "NONE")
@@ -29,10 +31,6 @@ namespace ValidatorSam
             {
                 var self = new ValidatorBuilder<T>();
                 self.Validator.Name = propName;
-
-                var genericType = typeof(T);
-                self.ResolveAutoCast(genericType);
-
                 instance = self;
                 return self;
             }

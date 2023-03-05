@@ -6,13 +6,20 @@ using ValidatorSam.Fody.Utils;
 using ValidatorSam.Fody.Extensions;
 using Mono.Cecil;
 using System.Reflection;
+using System.Linq;
 
 namespace ValidatorSam.Fody
 {
     public class ModuleWeaver : BaseModuleWeaver
     {
+        public const string METHOD_BUILD_NAME = "ValidatorSam.ValidatorBuilder`1<T> ValidatorSam.Validator`1::Build()";
+        public const string TYPE_VALIDATORTSAM = @"Validator`1";
+
         public static ModuleWeaver Instance { get; private set; }
+
+        public AssemblyNameReference ValidatorSam_Dll { get; private set; }   
         public TypeReference ValidatorT_TypeRefrence { get; private set; }
+        public MethodReference MethodBuild { get; private set; }
 
         public override void Execute()
         {
@@ -22,12 +29,21 @@ namespace ValidatorSam.Fody
 
             try
             {
-                ValidatorT_TypeRefrence = GetTypeRefValidatorT();
+                // find dll
+                ValidatorSam_Dll = GetValidatorSam(ModuleDefinition);
+                if (ValidatorSam_Dll == null)
+                    throw new Exception("Not found ValidatorSam.dll");
+
+                // find validatorT type
+                ValidatorT_TypeRefrence = GetTypeRefValidatorT(ValidatorSam_Dll);
                 if (ValidatorT_TypeRefrence == null)
                     throw new Exception("Not found Validator<T> class");
-                else
-                    Debug($"find type reference Validator<T>");
 
+                MethodBuild = GetMethodBuild(ValidatorT_TypeRefrence);
+                if (MethodBuild == null)
+                    throw new Exception("Not found Validator<T>.Build() method");
+
+                // find classes
                 var finder = new Finder(this);
                 var types = finder.Find();
                 foreach (var type in types)
@@ -36,6 +52,7 @@ namespace ValidatorSam.Fody
                 if (types.Length == 0)
                     finish = "No one match validators";
 
+                // inject
                 foreach (var item in types)
                     item.InjectFixInClass(this);
             }
@@ -52,6 +69,7 @@ namespace ValidatorSam.Fody
                 finish = "FAIL ";
                 finish += $" [{exMSG}]\n";
                 finish += ex.StackTrace;
+                WriteError(finish);
             }
             finally
             {
@@ -72,21 +90,42 @@ namespace ValidatorSam.Fody
             DebugFile.WriteLine(message);
         }
 
-        public TypeReference GetTypeRefValidatorT()
+
+        public AssemblyNameReference GetValidatorSam(ModuleDefinition module)
         {
-            AssemblyNameReference validatorDll = null;
-            foreach (var item in ModuleDefinition.AssemblyReferences)
+            foreach (var item in module.AssemblyReferences)
             {
                 Debug($"find Validator.dll assembly::{item.Name}");
                 if (item.Name == "ValidatorSam")
-                    validatorDll = item;
+                {
+                    return item;
+                }
             }
 
-            var asm = AssemblyResolver.Resolve(validatorDll);
+            return null;
+        }
+
+        public TypeReference GetTypeRefValidatorT(AssemblyNameReference dll)
+        {
+            var asm = AssemblyResolver.Resolve(dll);
             foreach (var item in asm.MainModule.Types)
             {
                 Debug($"find validator<T> on {item.Name}");
-                if (item.Name == @"Validator`1")
+                if (item.Name == TYPE_VALIDATORTSAM)
+                {
+                    return item;
+                }
+            }
+
+            return null;
+        }
+
+        public MethodReference GetMethodBuild(TypeReference type)
+        {
+            foreach(var item in type.Resolve().Methods)
+            {
+                Debug($"DEBUG find method on {item.FullName}");
+                if (item.FullName == METHOD_BUILD_NAME)
                 {
                     return item;
                 }
