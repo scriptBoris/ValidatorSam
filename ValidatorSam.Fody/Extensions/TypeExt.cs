@@ -39,9 +39,21 @@ namespace ValidatorSam.Fody.Extensions
 
             foreach (var getterProp in getters)
             {
-                var originGetterMethod = getterProp.GetMethod;
                 int id = rand.Next(0,1000000);
+                var originGetterMethod = getterProp.GetMethod;
                 var methodReturnType = originGetterMethod.ReturnType;
+
+                // Copy and clear
+                var instructions = new List<Instruction>();
+                foreach (var item in originGetterMethod.Body.Instructions)
+                    instructions.Add(item);
+                originGetterMethod.Body.Instructions.Clear();
+
+                // todo Нужно ли копировать инструкции?
+                var vars = new List<VariableDefinition>();
+                foreach (var item in originGetterMethod.Body.Variables)
+                    vars.Add(item);
+                originGetterMethod.Body.Variables.Clear();
 
                 // field
                 var field = new FieldDefinition($"{originGetterMethod.Name}_FODY_{id}_field", FieldAttributes.Private, methodReturnType);
@@ -49,28 +61,17 @@ namespace ValidatorSam.Fody.Extensions
 
                 // method
                 var methodName = $"{originGetterMethod.Name}_FODY_{id}";
-                //var flags = MethodAttributes.Public |
-                //    MethodAttributes.HideBySig | 
-                //    MethodAttributes.SpecialName |
-                //    MethodAttributes.Virtual | 
-                //    MethodAttributes.Final |
-                //    MethodAttributes.NewSlot;
-                var flags = MethodAttributes.Public |
-                    MethodAttributes.HideBySig |
-                    MethodAttributes.SpecialName;
+                var flags = MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName;
                 var newGetterMethod = new MethodDefinition(methodName, flags, methodReturnType);
-                newGetterMethod.GenerateBody(originGetterMethod, field);
 
+                foreach (var item in instructions)
+                    newGetterMethod.Body.Instructions.Add(item);
+
+                foreach (var item in vars)
+                    newGetterMethod.Body.Variables.Add(item);
+
+                originGetterMethod.GenerateBody(newGetterMethod, field);
                 classType.Methods.Add(newGetterMethod);
-
-                // replace
-                getterProp.GetMethod = newGetterMethod;
-                originGetterMethod.Attributes = MethodAttributes.Public;
-
-                // rename
-                string ogname = originGetterMethod.Name;
-                originGetterMethod.Name = newGetterMethod.Name;
-                newGetterMethod.Name = ogname;
             }
         }
 
