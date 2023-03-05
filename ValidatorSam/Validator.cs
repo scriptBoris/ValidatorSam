@@ -239,17 +239,17 @@ namespace ValidatorSam
         {
             bool isEmpty;
 
-            if (genericValue is string vstring)
+            switch (genericValue)
             {
-                isEmpty = string.IsNullOrWhiteSpace(vstring);
-            }
-            //else if (IsGenericStructType())
-            //{
-            //    isEmpty = value == null;
-            //}
-            else
-            {
-                isEmpty = genericValue == null;
+                case string vstring:
+                    isEmpty = string.IsNullOrWhiteSpace(vstring);
+                    break;
+                case bool vbool:
+                    isEmpty = !vbool;
+                    break;
+                default:
+                    isEmpty = genericValue == null;
+                    break;
             }
 
             return isEmpty;

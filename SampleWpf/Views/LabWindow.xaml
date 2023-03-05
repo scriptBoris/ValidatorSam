@@ -30,6 +30,11 @@
             <TextBlock Text="{Binding DoubleField.TextError}"
                        Foreground="Red"/>
 
+            <TextBlock Text="bool"/>
+            <CheckBox IsChecked="{Binding BoolField.Value, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBlock Text="{Binding BoolField.TextError}"
+                       Foreground="Red"/>
+
             <Button Command="{Binding CommandCheckValid}">
                 <TextBlock Text="Check valid"/>
             </Button>

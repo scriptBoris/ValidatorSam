@@ -17,6 +17,7 @@ namespace SampleWpf.ViewModels
         private object? _stringField;
         private object? _intField;
         private object? _doubleField;
+        private object? _boolField;
 
         public LabViewModel()
         {
@@ -42,6 +43,9 @@ namespace SampleWpf.ViewModels
         public Validator<double?> DoubleField => Validator<double?>.Build(ref _doubleField)
             .UsingSafeRule((x) => x < 90, "Cant be less 90")
             .UsingSafeRule((x) => x > 90, "Cant be over 90")
+            .UsingRequired();
+
+        public Validator<bool> BoolField => Validator<bool>.Build(ref _boolField)
             .UsingRequired();
 
         public ICommand CommandCheckValid => new Command(() =>
