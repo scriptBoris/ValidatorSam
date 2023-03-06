@@ -9,7 +9,7 @@
     <PackageProjectUrl>https://github.com/scriptBoris/ValidatorSam</PackageProjectUrl>
     <RepositoryUrl>https://github.com/scriptBoris/ValidatorSam</RepositoryUrl>
     <PackageTags>ILWeaving, Fody, Cecil, AOP, Validation, Validator, MVVM</PackageTags>
-    <Version>0.9.2-beta</Version>
+    <Version>0.9.3-beta</Version>
   </PropertyGroup>
 
   <ItemGroup>
