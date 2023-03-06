@@ -14,9 +14,6 @@ namespace ValidatorSam
         public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilder<T?> self, Func<T, bool> rule, string error)
             where T : struct
         {
-            if (self.isBuilded)
-                return self;
-
             self.Validator._rules.Add(new RuleItem<T?>
             {
                 IsSafeRule = true,
@@ -29,9 +26,6 @@ namespace ValidatorSam
         public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilder<T?> self, Func<T, bool> rule, string error)
             where T : class
         {
-            if (self.isBuilded)
-                return self;
-
             self.Validator._rules.Add(new RuleItem<T?>
             {
                 IsSafeRule = true,
@@ -43,9 +37,6 @@ namespace ValidatorSam
 
         public static ValidatorBuilder<string?> UsingTextLimit(this ValidatorBuilder<string?> self, uint min, uint max)
         {
-            if (self.isBuilded)
-                return self;
-
             self.UsingPreprocessor(x =>
             {
                 int l = x.StringNewValue?.Length ?? 0;
@@ -83,9 +74,6 @@ namespace ValidatorSam
         public static ValidatorBuilder<T> UsingLimitations<T>(this ValidatorBuilder<T> self, T min, T max)
             where T : struct
         {
-            if (self.isBuilded)
-                return self;
-
             self.UsingPreprocessor(x =>
             {
                 return CommonLimitations(x, min, max);
@@ -96,9 +84,6 @@ namespace ValidatorSam
         public static ValidatorBuilder<T?> UsingLimitations<T>(this ValidatorBuilder<T?> self, T min, T max)
             where T : struct
         {
-            if (self.isBuilded)
-                return self;
-
             self.UsingPreprocessor(x =>
             {
                 return CommonLimitations(x, min, max);

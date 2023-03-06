@@ -14,10 +14,12 @@ using ValidatorSam.Internal;
 #nullable enable
 namespace ValidatorSam
 {
+    /// <summary>
+    /// Class for initialization Validator
+    /// </summary>
     public class ValidatorBuilder<T>
     {
         internal readonly Validator<T> Validator = new Validator<T>();
-        internal bool isBuilded;
 
         internal ValidatorBuilder()
         {
@@ -25,28 +27,15 @@ namespace ValidatorSam
             ResolveAutoCast(genericType);
         }
 
-        internal static ValidatorBuilder<T> Build(ref object? instance, string propName = "NONE")
+        internal static ValidatorBuilder<T> Build(string propName)
         {
-            if (instance == null)
-            {
-                var self = new ValidatorBuilder<T>();
-                self.Validator.Name = propName;
-                instance = self;
-                return self;
-            }
-            else
-            {
-                var self = (ValidatorBuilder<T>)instance;
-                self.isBuilded = true;
-                return self;
-            }
+            var self = new ValidatorBuilder<T>();
+            self.Validator.Name = propName;
+            return self;
         }
 
         public ValidatorBuilder<T> UsingRule(Func<T, bool> rule, string error)
         {
-            if (isBuilded)
-                return this;
-
             Validator._rules.Add(new RuleItem<T>
             {
                 ErrorText = error,
@@ -58,9 +47,6 @@ namespace ValidatorSam
         private const string defaultRequired = "{DEFAULT}";
         public ValidatorBuilder<T> UsingRequired(string requiredText = defaultRequired)
         {
-            if (isBuilded)
-                return this;
-
             if (requiredText == defaultRequired)
             {
                 var currentCulture = Thread.CurrentThread.CurrentCulture;
@@ -89,36 +75,24 @@ namespace ValidatorSam
 
         public ValidatorBuilder<T> UsingValue(T value)
         {
-            if (isBuilded)
-                return this;
-
             Validator.SetValueAsRat(value, true);
             return this;
         }
 
         public ValidatorBuilder<T> UsingEnabledState(bool isEnabled)
         {
-            if (isBuilded)
-                return this;
-
             Validator._isEnabled = isEnabled;
             return this;
         }
 
         public ValidatorBuilder<T> UsingPreprocessor(Func<ValidatorPreprocessArgs, PreprocessResult> cast)
         {
-            if (isBuilded)
-                return this;
-
             Validator._preprocess.Add(cast);
             return this;
         }
 
         public ValidatorBuilder<T> UsingValueChangeListener(Action<ValidatorValueChangedArgs<T>> act)
         {
-            if (isBuilded)
-                return this;
-
             Validator._changeListeners.Add(act);
             return this;
         }

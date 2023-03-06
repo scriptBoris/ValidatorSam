@@ -30,15 +30,34 @@ namespace ValidatorSam
         private bool _isValid;
         internal string? _requiredText;
         internal bool _isRequired;
-        private string _name;
+        private string _name = "undefined";
         internal bool _isGenericStringType;
 
+        /// <summary>
+        /// Implementation INotifyPropertyChanged event
+        /// </summary>
         public event PropertyChangedEventHandler? PropertyChanged;
+
+        /// <summary>
+        /// Fires when this validator has encountered an error or the error 
+        /// has disappeared (after entering a value or manually validating)
+        /// </summary>
         public event EventHandlerSure<ValidatorErrorTextArgs>? ErrorChanged;
+
+        /// <summary>
+        /// Fires when a value has been changed 
+        /// </summary>
         public event EventHandlerSure<ValidatorValueChangedArgs>? ValueChanged;
+
+        /// <summary>
+        /// Fires when a property IsEnabled has been changed
+        /// </summary>
         public event EventHandlerSure<bool>? EnabledChanged;
 
         #region props
+        /// <summary>
+        /// This property is for binding and read input value
+        /// </summary>
         public object? Value
         {
             get => _value;
@@ -61,18 +80,32 @@ namespace ValidatorSam
             }
         }
 
+        /// <summary>
+        /// This property is for text based field binding only. <br/>
+        /// Such as scenario:  <br/>
+        /// - string: write user name <br/>
+        /// - int: write number of members in the family <br/>
+        /// - double: manual input of the weight of the load
+        /// </summary>
         public string? RawValue
         {
             get => _rawValue ?? _value?.ToString();
             set => Value = value;
         }
 
+        /// <summary>
+        /// The value that was specified during Building of the validator
+        /// </summary>
         public object? InitValue 
         {
             get; 
             internal set; 
         }
 
+        /// <summary>
+        /// Indicates whether the validator is enabled or not. 
+        /// Specify FALSE and in all checks of this validator it will return IsValid = true
+        /// </summary>
         public bool IsEnabled
         {
             get => _isEnabled;
@@ -87,8 +120,14 @@ namespace ValidatorSam
             }
         }
 
+        /// <summary>
+        /// Indicates whether the validator contains a value or not
+        /// </summary>
         public bool HasValue => !CheckValueIsEmpty(Value);
 
+        /// <summary>
+        /// Indicates that any data must be entered (not null, not empty string, not white spaces)
+        /// </summary>
         public bool IsRequired
         {
             get => _isRequired;
@@ -99,6 +138,9 @@ namespace ValidatorSam
             }
         }
 
+        /// <summary>
+        /// Validation flag
+        /// </summary>
         public bool IsValid
         {
             get => _isValid;
@@ -109,6 +151,9 @@ namespace ValidatorSam
             }
         }
 
+        /// <summary>
+        /// Contains first match error
+        /// </summary>
         public string? TextError
         {
             get => _textError;
@@ -119,6 +164,17 @@ namespace ValidatorSam
             }
         }
 
+        /// <summary>
+        /// The name of the validator. 
+        /// If you use automatic BUILD generation, the Fody postprocessor will assign 
+        /// the name of the property that the validator is bound to.
+        /// Such as: 
+        /// <code>
+        /// public Validator{string} UserName => Validator{string}.Build()...
+        /// </code>
+        /// Will used UserName
+        /// P.S. {} - is instead of triangle brackets, sorry
+        /// </summary>
         public string Name
         {
             get => _name; /*?? new StackTrace().GetFrame(1).Get;*/
@@ -273,6 +329,9 @@ namespace ValidatorSam
         #endregion internal methods
 
         #region public methods
+        /// <summary>
+        /// Manually checking the validator
+        /// </summary>
         public ValidatorResult CheckValid()
         {
             //var value = CastValue(Value);
@@ -284,6 +343,10 @@ namespace ValidatorSam
             return res;
         }
 
+        /// <summary>
+        /// Finds all validators inside the specified object using reflection
+        /// </summary>
+        /// <param name="validatorHoster"></param>
         public static Validator[] GetAll(object validatorHoster)
         {
             var list = new List<Validator>();

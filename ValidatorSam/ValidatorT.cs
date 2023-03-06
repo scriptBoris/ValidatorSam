@@ -8,6 +8,10 @@ using ValidatorSam.Internal;
 #nullable enable
 namespace ValidatorSam
 {
+    /// <summary>
+    /// Main Validator class
+    /// </summary>
+    /// <typeparam name="T">The type that will appear in checks and preprocessors</typeparam>
     public class Validator<T> : Validator
     {
         internal readonly List<RuleItem<T>> _rules = new List<RuleItem<T>>();
@@ -136,9 +140,9 @@ namespace ValidatorSam
         /// <summary>
         /// Manual create singleton instance
         /// </summary>
-        public static ValidatorBuilder<T> Build(ref object? obj, [CallerMemberName] string propName = "NONE")
+        public static ValidatorBuilder<T> BuildManual(string propName = "NONE")
         {
-            return ValidatorBuilder<T>.Build(ref obj, propName);
+            return ValidatorBuilder<T>.Build(propName);
         }
     }
 }
