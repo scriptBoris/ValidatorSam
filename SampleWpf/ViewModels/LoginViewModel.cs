@@ -16,18 +16,6 @@ namespace SampleWpf.ViewModels
 {
     public class LoginViewModel : BaseViewModel
     {
-        private Validator<string>? test;
-
-        public LoginViewModel()
-        {
-            Email.RawValue = "Boris@gmail.com";
-
-            if (Email.RawValue == "")
-            {
-
-            }
-        }
-
         public Validator<string> Email => Validator<string>
             .Build()
             .UsingRule(x => !MailAddress.TryCreate(x, out MailAddress? m), "No valid email")

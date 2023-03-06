@@ -322,6 +322,11 @@ namespace ValidatorSam
             }
         }
 
+        internal void SetNameByFodyPostprocessing(string name)
+        {
+            _name = name;
+        }
+
         private void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
