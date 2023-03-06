@@ -322,7 +322,11 @@ namespace ValidatorSam
             }
         }
 
-        internal void SetNameByFodyPostprocessing(string name)
+        /// <summary>
+        /// THIS PROPERTY IMPORTANT for Fody postprocessor
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void SetNameByFodyPostprocessing(string name)
         {
             _name = name;
         }

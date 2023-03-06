@@ -57,7 +57,10 @@ namespace SampleWpf.ViewModels
         private Validator<int?> TEST_RESOLVER()
         {
             if (test == null)
+            {
                 test = TEST_BUILDER();
+                test.SetNameByFodyPostprocessing("TEST_RESOLVER");
+            }
             return test;
         }
 

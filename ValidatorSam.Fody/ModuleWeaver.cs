@@ -13,13 +13,17 @@ namespace ValidatorSam.Fody
     public class ModuleWeaver : BaseModuleWeaver
     {
         public const string METHOD_BUILD_NAME = "ValidatorSam.ValidatorBuilder`1<T> ValidatorSam.Validator`1::Build()";
-        public const string TYPE_VALIDATORTSAM = @"Validator`1";
+        public const string METHOD_SETNAME_NAME = "System.Void ValidatorSam.Validator::SetNameByFodyPostprocessing(System.String)";
+        public const string TYPE_VALIDATORTSAM_T = @"Validator`1";
+        public const string TYPE_VALIDATORTSAM = @"Validator";
 
         public static ModuleWeaver Instance { get; private set; }
 
         public AssemblyNameReference ValidatorSam_Dll { get; private set; }   
         public TypeReference ValidatorT_TypeRefrence { get; private set; }
+        public TypeReference Validator_TypeRefrence { get; private set; }
         public MethodReference MethodBuild { get; private set; }
+        public MethodReference MethodSetName { get; private set; }
 
         public override void Execute()
         {
@@ -30,18 +34,31 @@ namespace ValidatorSam.Fody
             try
             {
                 // find dll
-                ValidatorSam_Dll = GetValidatorSam(ModuleDefinition);
+                ValidatorSam_Dll = FindValidatorSamDll(ModuleDefinition);
                 if (ValidatorSam_Dll == null)
                     throw new Exception("Not found ValidatorSam.dll");
 
                 // find validatorT type
-                ValidatorT_TypeRefrence = GetTypeRefValidatorT(ValidatorSam_Dll);
+                ValidatorT_TypeRefrence = FindTypeRef(ValidatorSam_Dll, TYPE_VALIDATORTSAM_T);
                 if (ValidatorT_TypeRefrence == null)
                     throw new Exception("Not found Validator<T> class");
 
-                MethodBuild = GetMethodBuild(ValidatorT_TypeRefrence);
+                // find validator type
+                Validator_TypeRefrence = FindTypeRef(ValidatorSam_Dll, TYPE_VALIDATORTSAM);
+                if (Validator_TypeRefrence == null)
+                    throw new Exception("Not found Validator class");
+
+                // find build method
+                MethodBuild = FindMethod(ValidatorT_TypeRefrence, METHOD_BUILD_NAME);
                 if (MethodBuild == null)
                     throw new Exception("Not found Validator<T>.Build() method");
+
+                // find set name method
+                MethodSetName = FindMethod(Validator_TypeRefrence, METHOD_SETNAME_NAME);
+                if (MethodSetName == null)
+                    throw new Exception($"Not found {METHOD_SETNAME_NAME} method");
+
+                MethodSetName = this.ModuleDefinition.ImportReference(MethodSetName);
 
                 // find classes
                 var finder = new Finder(this);
@@ -91,7 +108,7 @@ namespace ValidatorSam.Fody
         }
 
 
-        public AssemblyNameReference GetValidatorSam(ModuleDefinition module)
+        public AssemblyNameReference FindValidatorSamDll(ModuleDefinition module)
         {
             foreach (var item in module.AssemblyReferences)
             {
@@ -105,13 +122,13 @@ namespace ValidatorSam.Fody
             return null;
         }
 
-        public TypeReference GetTypeRefValidatorT(AssemblyNameReference dll)
+        public TypeReference FindTypeRef(AssemblyNameReference dll, string findTypeFullName)
         {
             var asm = AssemblyResolver.Resolve(dll);
             foreach (var item in asm.MainModule.Types)
             {
-                Debug($"find validator<T> on {item.Name}");
-                if (item.Name == TYPE_VALIDATORTSAM)
+                Debug($"find type... {item.Name}");
+                if (item.Name == findTypeFullName)
                 {
                     return item;
                 }
@@ -120,12 +137,12 @@ namespace ValidatorSam.Fody
             return null;
         }
 
-        public MethodReference GetMethodBuild(TypeReference type)
+        public MethodReference FindMethod(TypeReference type, string findMethodFullName)
         {
-            foreach(var item in type.Resolve().Methods)
+            foreach (var item in type.Resolve().Methods)
             {
-                Debug($"DEBUG find method on {item.FullName}");
-                if (item.FullName == METHOD_BUILD_NAME)
+                Debug($"DEBUG find method... {item.FullName}");
+                if (item.FullName == findMethodFullName)
                 {
                     return item;
                 }
