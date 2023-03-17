@@ -19,14 +19,35 @@ namespace ValidatorSam.Fody.Postprocessing
         public TypeDefinition[] Find()
         {
             var list = new List<TypeDefinition>();
-            
-            foreach (var type in weaver.ModuleDefinition.Types.Where(x => x.IsUsingValidatorSam()))
+
+            var root = weaver.ModuleDefinition.Types;
+            //var root = weaver.ModuleDefinition.Types.Where(x => x.IsUsingValidatorSam());
+
+            foreach (var item in root)
             {
-                list.Add(type);
+                var nesteds = FindInner(item);
+                list.AddRange(nesteds);
             }
 
             return list.ToArray();
         }
 
+        private TypeDefinition[] FindInner(TypeDefinition typeDefinition)
+        {
+            var list = new List<TypeDefinition>();
+
+            if (typeDefinition.IsUsingValidatorSam())
+                list.Add(typeDefinition);
+
+            var nestedTypes = typeDefinition.NestedTypes;
+
+            foreach (var type in nestedTypes)
+            {
+                var nesteds = FindInner(type);
+                list.AddRange(nesteds);
+            }
+
+            return list.ToArray();
+        }
     }
 }

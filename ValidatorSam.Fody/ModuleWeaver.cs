@@ -29,6 +29,7 @@ namespace ValidatorSam.Fody
         {
             Instance = this;
             string finish = null;
+            DebugFile.ClearFile();
             Debug("Start: postprocessing...");
 
             try
@@ -37,37 +38,44 @@ namespace ValidatorSam.Fody
                 ValidatorSam_Dll = FindValidatorSamDll(ModuleDefinition);
                 if (ValidatorSam_Dll == null)
                     throw new Exception("Not found ValidatorSam.dll");
+                Debug("OK: ValidatorSam.dll is matched!");
 
                 // find validatorT type
                 ValidatorT_TypeRefrence = FindTypeRef(ValidatorSam_Dll, TYPE_VALIDATORTSAM_T);
                 if (ValidatorT_TypeRefrence == null)
                     throw new Exception("Not found Validator<T> class");
+                Debug("OK: Validator<T> class is matched!");
 
                 // find validator type
                 Validator_TypeRefrence = FindTypeRef(ValidatorSam_Dll, TYPE_VALIDATORTSAM);
                 if (Validator_TypeRefrence == null)
                     throw new Exception("Not found Validator class");
+                Debug("OK: Validator class is matched!");
 
                 // find build method
                 MethodBuild = FindMethod(ValidatorT_TypeRefrence, METHOD_BUILD_NAME);
                 if (MethodBuild == null)
                     throw new Exception("Not found Validator<T>.Build() method");
+                Debug($"OK: method <Build> is matched!");
 
                 // find set name method
                 MethodSetName = FindMethod(Validator_TypeRefrence, METHOD_SETNAME_NAME);
                 if (MethodSetName == null)
                     throw new Exception($"Not found {METHOD_SETNAME_NAME} method");
+                Debug($"OK: method <SetName> is matched!");
 
                 MethodSetName = this.ModuleDefinition.ImportReference(MethodSetName);
 
                 // find classes
                 var finder = new Finder(this);
                 var types = finder.Find();
+
+                Debug($"SEARCH RESULT:");
                 foreach (var type in types)
-                    Debug($"find class: {type.Name}");
+                    Debug($"- find class for injection: {type.FullName}");
 
                 if (types.Length == 0)
-                    finish = "No one match validators";
+                    finish = "- No one match validators";
 
                 // inject
                 foreach (var item in types)
@@ -112,7 +120,7 @@ namespace ValidatorSam.Fody
         {
             foreach (var item in module.AssemblyReferences)
             {
-                Debug($"find Validator.dll assembly::{item.Name}");
+                Debug($"try find Validator.dll in assembly: <{item.Name}>...");
                 if (item.Name == "ValidatorSam")
                 {
                     return item;
@@ -124,10 +132,11 @@ namespace ValidatorSam.Fody
 
         public TypeReference FindTypeRef(AssemblyNameReference dll, string findTypeFullName)
         {
+            Debug($"try find class <{findTypeFullName}> in dll: <{dll.Name}>...");
             var asm = AssemblyResolver.Resolve(dll);
             foreach (var item in asm.MainModule.Types)
             {
-                Debug($"find type... {item.Name}");
+                Debug($"compare {findTypeFullName} with {item.Name}");
                 if (item.Name == findTypeFullName)
                 {
                     return item;
@@ -139,9 +148,10 @@ namespace ValidatorSam.Fody
 
         public MethodReference FindMethod(TypeReference type, string findMethodFullName)
         {
+            Debug($"try find method <{findMethodFullName}> in class: <{type.FullName}>...");
             foreach (var item in type.Resolve().Methods)
             {
-                Debug($"DEBUG find method... {item.FullName}");
+                Debug($"compare <{findMethodFullName}> with <{item.FullName}>");
                 if (item.FullName == findMethodFullName)
                 {
                     return item;

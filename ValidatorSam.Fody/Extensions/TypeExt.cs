@@ -13,24 +13,23 @@ namespace ValidatorSam.Fody.Extensions
 {
     public static class TypeExt
     {
-        public static bool IsUsingValidatorSam(this TypeDefinition type)
+        public static bool IsUsingValidatorSam(this TypeDefinition type, int consoleSpacing = 0)
         {
-            bool isAny = false;
-            DebugFile.WriteLine($"class {type.FullName}");
+            bool result = false;
+            DebugFile.WriteLine($"check class <{type.FullName}> is for injection...", consoleSpacing);
             foreach (var item in type.Properties)
             {
                 if (item.SetMethod != null)
                     continue;
 
-                if (item.GetMethod.IsMethodGetterValidator())
-                    #if DEBUG
-                    isAny = true;
-                    #else
-                    return true;
-                    #endif
+                if (item.GetMethod.IsMethodGetterValidator(true, consoleSpacing + 1))
+                    result = true;
             } 
 
-            return isAny;
+            if (!result)
+                DebugFile.WriteLine($"not", consoleSpacing + 1);
+
+            return result;
         }
 
         public static void InjectFixInClass(this TypeDefinition classType, BaseModuleWeaver weaver)

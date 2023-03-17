@@ -63,5 +63,11 @@ namespace SampleWpf.ViewModels
 
             MessageBox.Show($"{string.Join('\n', l)}", "Success");
         });
+
+        public class InnerClass
+        {
+            public Validator<string> InnerValidator => Validator<string>.Build().UsingRequired();
+            public Validator<DateTime?> BirthDate => Validator<DateTime?>.Build().UsingRequired();
+        }
     }
 }

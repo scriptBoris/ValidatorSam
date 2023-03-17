@@ -6,6 +6,16 @@ namespace ValidatorSam.Fody.Extensions
 {
     public static class StringExt
     {
+        public static string Multiple(this string s, int multiple) 
+        {
+            string res = "";
+
+            for (int i = 0; i < multiple; i++)
+                res += s;
+
+            return res;
+        }
+
         public static string ExtractTextInsideAngleBrackets(this string input)
         {
             int startIndex = input.IndexOf("<");

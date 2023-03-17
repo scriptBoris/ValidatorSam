@@ -10,7 +10,7 @@ namespace ValidatorSam.Fody.Extensions
 {
     public static  class MethodExt
     {
-        public static bool IsMethodGetterValidator(this MethodDefinition methodDefinition, bool usingDebug = true)
+        public static bool IsMethodGetterValidator(this MethodDefinition methodDefinition, bool usingDebug = true, int consoleSpacing = 0)
         {
             if (methodDefinition == null)
                 return false;
@@ -23,27 +23,31 @@ namespace ValidatorSam.Fody.Extensions
                 il.Operand is MethodReference methodReference)
             {
                 if (usingDebug)
-                    DebugFile.WriteLine($"   check is method \"{methodDefinition.Name}\" getter Validator<T> => {methodReference.FullName}");
+                {
+                    DebugFile.WriteLine($"check is method <{methodDefinition.Name}> getter Validator<T> => {methodReference.FullName}", consoleSpacing);
+                    consoleSpacing++;
+                }
+
 
                 //if (methodReference.FullName == "ValidatorSam.ValidatorBuilder`1<!0> ValidatorSam.Validator`1<System.String>::Build()")
                 //    return true;
 
                 var returnTypeName = methodDefinition.ReturnType.FullName;
                 if (usingDebug)
-                    DebugFile.WriteLine($"      return type: {returnTypeName}");
+                    DebugFile.WriteLine($"return type: {returnTypeName}", consoleSpacing);
 
                 var type = returnTypeName.ExtractTextInsideAngleBrackets();
                 string compareString = $"ValidatorSam.ValidatorBuilder`1<!0> ValidatorSam.Validator`1<{type}>::Build()";
                 if (methodReference.FullName == compareString)
                 {
                     if (usingDebug)
-                        DebugFile.WriteLine($"      this is getter Validator<T>");
+                        DebugFile.WriteLine($"this is getter Validator<T>", consoleSpacing);
                     return true;
                 }
                 else
                 {
                     if (usingDebug)
-                        DebugFile.WriteLine($"      compare string \"{compareString}\" - NO EQUAL");
+                        DebugFile.WriteLine($"compare string \"{compareString}\" - NO EQUAL", consoleSpacing);
                 }
             }
 

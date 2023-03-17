@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using ValidatorSam.Fody.Extensions;
 
 namespace ValidatorSam.Fody.Utils
 {
@@ -9,9 +10,19 @@ namespace ValidatorSam.Fody.Utils
     {
         private const string fileName = "post_fody.log";
 
-        public static void WriteLine(string line)
+        public static void ClearFile()
         {
-            string text = $"{DateTime.Now:dd.MM.yyyy HH:mm:ss}: {line}";
+            string dir = Environment.CurrentDirectory;
+            string path = Path.Combine(dir, fileName);
+            if (File.Exists(path))
+                System.IO.File.WriteAllText(path, string.Empty);
+        }
+
+        public static void WriteLine(string line, int consoleSpacing = 0)
+        {
+            string spacing = "  ".Multiple(consoleSpacing);
+
+            string text = $"{DateTime.Now:dd.MM.yyyy HH:mm:ss}: {spacing}{line}";
             var sw = TryCreateStream();
             sw.WriteLine(text);
             sw.Dispose();
