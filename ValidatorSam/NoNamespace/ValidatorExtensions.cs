@@ -30,6 +30,21 @@ namespace ValidatorSam
             return result.IsValid;
         }
 
+        public static ValidatorResult? FirstInvalidOrDefault(this Validator[] validators)
+        {
+            ValidatorResult? result = null;
+
+            foreach (var item in validators)
+            {
+                var res = item.CheckValid();
+                if (!res.IsValid && result == null)
+                    result = res;
+            }
+
+            return result;
+        }
+
+        [Obsolete("Please use FirstInvalidOrDefault")]
         public static ValidatorResult FirstInvalid(this Validator[] validators)
         {
             var result = new ValidatorResult(true, null, "none");
