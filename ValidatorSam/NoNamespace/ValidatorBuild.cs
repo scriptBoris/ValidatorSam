@@ -75,7 +75,7 @@ namespace ValidatorSam
 
         public ValidatorBuilder<T> UsingValue(T value)
         {
-            Validator.SetValueAsRat(value, true);
+            Validator.SetValueAsRat(value, RatModes.Init);
             return this;
         }
 

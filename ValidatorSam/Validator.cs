@@ -311,17 +311,6 @@ namespace ValidatorSam
             return isEmpty;
         }
 
-        internal void SetValueAsRat(object? value, bool asInitValue)
-        {
-            _value = value;
-            _rawValue = value?.ToString();
-
-            if (asInitValue)
-            {
-                InitValue = value;
-            }
-        }
-
         /// <summary>
         /// THIS PROPERTY IMPORTANT for Fody postprocessor
         /// </summary>
@@ -350,6 +339,30 @@ namespace ValidatorSam
             TextError = res.TextError;
             ErrorChanged?.Invoke(this, ValidatorErrorTextArgs.Calc(!res.IsValid, res.TextError));
             return res;
+        }
+
+        /// <summary>
+        /// The rat's method of setting a value. Use it very carefully
+        /// </summary>
+        public void SetValueAsRat(object? value, RatModes mode)
+        {
+            switch (mode)
+            {
+                case RatModes.Init:
+                    _value = value;
+                    _rawValue = value?.ToString();
+                    InitValue = value;
+                    break;
+
+                case RatModes.NoThrowEvents:
+                    _value = value;
+                    _rawValue = value?.ToString();
+                    break;
+
+                default:
+                    Value = value;
+                    break;
+            }
         }
 
         /// <summary>
