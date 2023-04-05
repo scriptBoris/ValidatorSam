@@ -124,6 +124,23 @@ namespace ValidatorSam
             }
         }
 
+        /// <summary>
+        /// The rat's method of setting a value. Use it very carefully
+        /// </summary>
+        public void SetValueAsRat(T value, RatModes mode)
+        {
+            base.SetValueAsRat(value, mode);
+        }
+
+        /// <summary>
+        /// Internal
+        /// </summary>
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public new void SetValueAsRat(object? value, RatModes mode)
+        {
+            base.SetValueAsRat(value, mode);
+        }
+
         public static implicit operator T(Validator<T> v)
         {
             return v.Value;
