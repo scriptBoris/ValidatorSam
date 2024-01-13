@@ -16,6 +16,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleMaui", "SampleMaui\Sa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ValidatorTests", "ValidatorTests\ValidatorTests.csproj", "{46CAA17B-C3F3-40FF-8FA5-8038ACA2C30B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lib", "Lib", "{48A5F007-CD6C-4971-B6D7-08AD1801263B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,10 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{585B8BF7-8E9E-40B6-BA2B-68AEB3B5339A} = {48A5F007-CD6C-4971-B6D7-08AD1801263B}
+		{3880C593-3712-4AB0-B9AF-05007352756E} = {48A5F007-CD6C-4971-B6D7-08AD1801263B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2B3E0474-48CC-4B1A-86FF-81154C354E87}
