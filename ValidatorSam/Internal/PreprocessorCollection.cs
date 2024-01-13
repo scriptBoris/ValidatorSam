@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ValidatorSam.Core;
-using static System.Net.Mime.MediaTypeNames;
 
 #nullable enable
 namespace ValidatorSam.Internal
@@ -74,9 +73,49 @@ namespace ValidatorSam.Internal
             }
         }
 
+        internal static PreprocessResult CastUint8(ValidatorPreprocessArgs x)
+        {
+            return MasterParse<byte>(x, false, false);
+        }
+
+        internal static PreprocessResult CastUint16(ValidatorPreprocessArgs x)
+        {
+            return MasterParse<ushort>(x, false, false);
+        }
+
+        internal static PreprocessResult CastUint32(ValidatorPreprocessArgs x)
+        {
+            return MasterParse<uint>(x, false, false);
+        }
+
+        internal static PreprocessResult CastUint64(ValidatorPreprocessArgs x)
+        {
+            return MasterParse<ulong>(x, false, false);
+        }
+
+        internal static PreprocessResult CastInt8(ValidatorPreprocessArgs x)
+        {
+            return MasterParse<sbyte>(x, false, true);
+        }
+
+        internal static PreprocessResult CastInt16(ValidatorPreprocessArgs x)
+        {
+            return MasterParse<short>(x, false, true);
+        }
+
         internal static PreprocessResult CastInt32(ValidatorPreprocessArgs x)
         {
             return MasterParse<int>(x, false, true);
+        }
+
+        internal static PreprocessResult CastInt64(ValidatorPreprocessArgs x)
+        {
+            return MasterParse<long>(x, false, true);
+        }
+
+        internal static PreprocessResult CastFloat(ValidatorPreprocessArgs x)
+        {
+            return MasterParse<float>(x, true, true);
         }
 
         internal static PreprocessResult CastDouble(ValidatorPreprocessArgs x)
@@ -84,52 +123,63 @@ namespace ValidatorSam.Internal
             return MasterParse<double>(x, true, true);
         }
 
+        internal static PreprocessResult CastDecimal(ValidatorPreprocessArgs x)
+        {
+            return MasterParse<decimal>(x, true, true);
+        }
+
         internal static PreprocessResult MasterParse<T>(ValidatorPreprocessArgs args, bool maybeComma, bool maybeNegative)
             where T : struct
         {
-            if (!args.IsString)
-                return new PreprocessResult { Type = PreprocessTypeResult.Ignore };
-
-            if (string.IsNullOrEmpty(args.StringNewValue))
-                return new PreprocessResult { ValueResult = null };
-
-            var parser = new NumbericTryParse<T>();
-            string logic = args.StringNewValue.Replace(" ", "");
-
-            // fix different commas
-            if (maybeComma)
-                logic = logic.Replace(".", ",");
-
-            // clear repeatable zeros
-            logic = FixFirstZeros(logic, maybeComma, maybeNegative);
-
-            string? text = logic;
-
-            // fix multiple "-"
-            if (maybeNegative)
-                FixMultiMunis(ref logic, ref text);
-
-            object? res;
-            if (parser.TryParse(logic))
+            if (args.NewValue is string newValueStr)
             {
-                res = parser.ParseResult;
+                if (string.IsNullOrEmpty(newValueStr))
+                    return PreprocessResult.Success(null, "");
+
+                var parser = new NumbericTryParse<T>();
+                string logic = newValueStr.Replace(" ", "");
+
+                // fix different commas
+                if (maybeComma)
+                    logic = logic.Replace(".", ",");
+
+                // clear repeatable zeros
+                logic = FixFirstZeros(logic, maybeComma, maybeNegative);
+
+                string? text = logic;
+
+                // fix multiple "-"
+                if (maybeNegative)
+                    FixMultiMunis(ref logic, ref text);
+
+                object? res;
+                if (parser.TryParse(logic))
+                {
+                    res = parser.ParseResult;
+                }
+                else
+                {
+                    string? repl = null;
+                    res = args.OldValue;
+
+                    if (maybeNegative)
+                    {
+                        if (text == "-")
+                            repl = "-";
+                    }
+                    else
+                    {
+                        if (text == "-")
+                            repl = (default(T) as object)?.ToString();
+                    }
+
+                    text = repl ?? res?.ToString();
+                }
+
+                return PreprocessResult.Success(res, text ?? "");
             }
-            else
-            {
-                string? repl = null;
-                res = args.OldValue;
 
-                if (maybeNegative && text == "-")
-                    repl = "-";
-
-                text = repl ?? res?.ToString();
-            }
-
-            return new PreprocessResult
-            {
-                ValueResult = res,
-                TextResult = text,
-            };
+            return PreprocessResult.Ignore();
         }
 
         private static string FixFirstZeros(string text, bool maybeComma, bool maybeNegative)

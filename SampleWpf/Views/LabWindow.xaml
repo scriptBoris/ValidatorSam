@@ -1,39 +1,39 @@
-﻿<Window x:Class="SampleWpf.Views.LabWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+﻿<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-        xmlns:local="clr-namespace:SampleWpf.Views" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:SampleWpf.Views"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewmodels="clr-namespace:SampleWpf.ViewModels"
-        mc:Ignorable="d"
+        x:Class="SampleWpf.Views.LabWindow"
+        Title="LabWindow"
         Width="300"
         Height="400"
-        WindowStartupLocation="CenterOwner"
         d:Background="White"
         d:DataContext="{d:DesignInstance viewmodels:LabViewModel}"
-        Title="LabWindow">
+        WindowStartupLocation="CenterOwner"
+        mc:Ignorable="d">
 
     <Grid>
         <StackPanel Margin="10">
             <TextBlock Text="string"/>
             <TextBox Text="{Binding StringField.Value, UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBlock Text="{Binding StringField.TextError}"
-                       Foreground="Red"/>
+            <TextBlock Foreground="Red"
+                       Text="{Binding StringField.TextError}"/>
 
             <TextBlock Text="int nullable"/>
             <TextBox Text="{Binding IntField.RawValue, UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBlock Text="{Binding IntField.TextError}"
-                       Foreground="Red"/>
+            <TextBlock Foreground="Red"
+                       Text="{Binding IntField.TextError}"/>
 
             <TextBlock Text="double nullable"/>
             <TextBox Text="{Binding DoubleField.RawValue, UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBlock Text="{Binding DoubleField.TextError}"
-                       Foreground="Red"/>
+            <TextBlock Foreground="Red"
+                       Text="{Binding DoubleField.TextError}"/>
 
             <TextBlock Text="bool"/>
             <CheckBox IsChecked="{Binding BoolField.Value, UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBlock Text="{Binding BoolField.TextError}"
-                       Foreground="Red"/>
+            <TextBlock Foreground="Red"
+                       Text="{Binding BoolField.TextError}"/>
 
             <Button Command="{Binding CommandCheckValid}">
                 <TextBlock Text="Check valid"/>

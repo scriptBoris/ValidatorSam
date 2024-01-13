@@ -20,6 +20,7 @@ namespace ValidatorSam
     public class ValidatorBuilder<T>
     {
         internal readonly Validator<T> Validator = new Validator<T>();
+        internal T usingValue;
 
         internal ValidatorBuilder()
         {
@@ -73,9 +74,15 @@ namespace ValidatorSam
             return this;
         }
 
+        public ValidatorBuilder<T> UsingName(string name)
+        {
+            Validator._customName = name;
+            return this;
+        }
+
         public ValidatorBuilder<T> UsingValue(T value)
         {
-            Validator.SetValueAsRat(value, RatModes.Init);
+            usingValue = value;
             return this;
         }
 
@@ -85,7 +92,7 @@ namespace ValidatorSam
             return this;
         }
 
-        public ValidatorBuilder<T> UsingPreprocessor(Func<ValidatorPreprocessArgs, PreprocessResult> cast)
+        public ValidatorBuilder<T> UsingPreprocessor(PreprocessorHandler cast)
         {
             Validator._preprocess.Add(cast);
             return this;
@@ -106,31 +113,64 @@ namespace ValidatorSam
             switch (Type.GetTypeCode(type))
             {
                 case TypeCode.Byte:
-                case TypeCode.SByte:
+                    Validator._defaultCast = PreprocessorCollection.CastUint8;
+                    break;
                 case TypeCode.UInt16:
+                    Validator._defaultCast = PreprocessorCollection.CastUint16;
+                    break;
                 case TypeCode.UInt32:
+                    Validator._defaultCast = PreprocessorCollection.CastUint32;
+                    break;
                 case TypeCode.UInt64:
+                    Validator._defaultCast = PreprocessorCollection.CastUint64;
+                    break;
+                case TypeCode.SByte:
+                    Validator._defaultCast = PreprocessorCollection.CastInt8;
+                    break;
                 case TypeCode.Int16:
+                    Validator._defaultCast = PreprocessorCollection.CastInt16;
                     break;
                 case TypeCode.Int32:
-                    UsingPreprocessor(PreprocessorCollection.CastInt32);
+                    Validator._defaultCast = PreprocessorCollection.CastInt32;
                     break;
                 case TypeCode.Int64:
-                case TypeCode.Decimal:
-                    break;
-                case TypeCode.Double:
-                    UsingPreprocessor(PreprocessorCollection.CastDouble);
+                    Validator._defaultCast = PreprocessorCollection.CastInt64;
                     break;
                 case TypeCode.Single:
+                    Validator._defaultCast = PreprocessorCollection.CastFloat;
+                    break;
+                case TypeCode.Double:
+                    Validator._defaultCast = PreprocessorCollection.CastDouble;
+                    break;
+                case TypeCode.Decimal:
+                    Validator._defaultCast = PreprocessorCollection.CastDecimal;
                     break;
                 default:
                     break;
             }
         }
 
-        public static implicit operator Validator<T>(ValidatorBuilder<T> t)
+        public static implicit operator Validator<T>(ValidatorBuilder<T> builder)
         {
-            return t.Validator;
+            if (builder.usingValue != null)
+            {
+                builder
+                    .Validator
+                    .SetValueAsRat(
+                        builder.usingValue, 
+                        RatModes.Default | RatModes.InitValue | RatModes.SkipValidation | RatModes.SkipPreprocessors);
+            }
+            else if (builder.Validator.CanNotBeNull)
+            {
+                builder
+                    .Validator
+                    .SetValueAsRat(
+                        default(T), 
+                        RatModes.Default | RatModes.InitValue | RatModes.SkipValidation);
+
+            }
+
+            return builder.Validator;
         }
     }
 }

@@ -37,7 +37,10 @@ namespace ValidatorSam.Fody
                 // find dll
                 ValidatorSam_Dll = FindValidatorSamDll(ModuleDefinition);
                 if (ValidatorSam_Dll == null)
-                    throw new Exception("Not found ValidatorSam.dll");
+                {
+                    WriteWarning("WARNING: Not found dependency of ValidatorSam.dll! Injection was skipped");
+                    return;
+                }
                 Debug("OK: ValidatorSam.dll is matched!");
 
                 // find validatorT type

@@ -1,8 +1,8 @@
-﻿<Application x:Class="WpfTest.App"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+﻿<Application xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:WpfTest"
              xmlns:core="clr-namespace:WpfTest.Core"
+             xmlns:local="clr-namespace:WpfTest"
+             x:Class="WpfTest.App"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
     </Application.Resources>

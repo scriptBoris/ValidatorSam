@@ -53,5 +53,12 @@ namespace WpfTest
             window.Show();
         }
 
+        private void Button_BadData(object sender, RoutedEventArgs e)
+        {
+            var window = new BadDataWindow();
+            window.Owner = this;
+            window.DataContext = new BadDataViewModel();
+            window.Show();
+        }
     }
 }

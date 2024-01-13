@@ -14,6 +14,7 @@
             <Button Click="Button_Login" Margin="10">Login</Button>
             <Button Click="Button_Lab" Margin="10">Lab</Button>
             <Button Click="Button_Lab_initValue" Margin="10">Lab init value</Button>
+            <Button Click="Button_BadData" Margin="10">Bad data</Button>
         </StackPanel>
     </Grid>
 </Window>

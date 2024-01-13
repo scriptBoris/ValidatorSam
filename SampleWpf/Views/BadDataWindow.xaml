@@ -1,0 +1,25 @@
+﻿<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:SampleWpf.Views"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewmodels="clr-namespace:SampleWpf.ViewModels"
+        x:Class="SampleWpf.Views.BadDataWindow"
+        Title="BadDataWindow"
+        Width="400"
+        Height="450"
+        d:DataContext="{d:DesignInstance viewmodels:BadDataViewModel}"
+        WindowStartupLocation="CenterOwner"
+        mc:Ignorable="d">
+    <Grid>
+        <StackPanel Margin="10">
+
+            <TextBlock Text="Count calls"/>
+            <TextBox Text="{Binding CountCalls.RawValue, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBlock Foreground="Red"
+                       Text="{Binding CountCalls.TextError}"/>
+
+            <Button Command="{Binding CommandCheckValid}">Check valid</Button>
+        </StackPanel>
+    </Grid>
+</Window>

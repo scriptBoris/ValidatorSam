@@ -5,34 +5,48 @@ using System.Text;
 #nullable enable
 namespace ValidatorSam.Core
 {
-    public enum PreprocessTypeResult
+    public enum PreprocessResultType
     {
         Success,
         Error,
         Ignore,
     }
 
-    public struct PreprocessResult
+    public class PreprocessResult
     {
-        public PreprocessTypeResult Type { get; set; }
-        public string? ErrorText { get; set; }
-        public object? ValueResult { get; set; }
-        public string? TextResult { get; set; }
-
-        public ValidatorPreprocessArgs AsArg(ValidatorPreprocessArgs last)
+        private PreprocessResult()
         {
-            bool isString = false;
-            if (ValueResult is string)
-                isString = true;
+        }
 
-            return new ValidatorPreprocessArgs
+        public PreprocessResultType ResultType { get; private set; }
+        public string? ErrorText { get; private set; }
+        public object? ValueResult { get; private set; }
+        public string? RawResult { get; private set; }
+
+        public static PreprocessResult Success(object? value, string? raw)
+        {
+            return new PreprocessResult
             {
-                IsString = isString,
-                NewValue = ValueResult,
-                OldValue = last.NewValue,
-                StringNewValue = TextResult,
-                StringOldValue = last.StringNewValue,
+                ResultType = PreprocessResultType.Success,
+                ValueResult = value,
+                RawResult = raw,
             };
+        }
+
+        public static PreprocessResult Error(string errorText, object? value, string? raw)
+        {
+            return new PreprocessResult
+            {
+                ResultType = PreprocessResultType.Error,
+                ErrorText = errorText,
+                ValueResult = value,
+                RawResult = raw,
+            };
+        }
+
+        public static PreprocessResult Ignore()
+        {
+            return new PreprocessResult() { ResultType = PreprocessResultType.Ignore };
         }
     }
 }

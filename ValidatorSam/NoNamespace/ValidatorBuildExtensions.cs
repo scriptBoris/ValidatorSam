@@ -39,26 +39,35 @@ namespace ValidatorSam
         {
             self.UsingPreprocessor(x =>
             {
-                int l = x.StringNewValue?.Length ?? 0;
+                if (x.NewValue == null)
+                    return PreprocessResult.Ignore();
 
-                if (l < min)
+                if (x.NewValue is string newValueStr)
                 {
-                    return new PreprocessResult
+                    int length = newValueStr.Length;
+                    if (length < min)
                     {
-                        ErrorText = $"Минимум {min} символов",
-                        ValueResult = x.StringNewValue,
-                    };
-                }
-                else if (l > max)
-                {
-                    return new PreprocessResult
+                        return PreprocessResult.Error($"Минимум {min} символов", newValueStr, null);
+                        //return new PreprocessResult
+                        //{
+                        //    ErrorText = $"Минимум {min} символов",
+                        //    ValueResult = newValueStr,
+                        //    ResultType = PreprocessResultType.Error,
+                        //};
+                    }
+                    else if (length > max)
                     {
-                        ErrorText = $"Максимум {max} символов",
-                        ValueResult = x.StringNewValue?.Substring(0, (int)max + 1)
-                    };
+                        return PreprocessResult.Error($"Максимум {max} символов", newValueStr.Substring(0, (int)max + 1), null);
+                        //return new PreprocessResult
+                        //{
+                        //    ErrorText = $"Максимум {max} символов",
+                        //    ValueResult = newValueStr.Substring(0, (int)max + 1),
+                        //    ResultType = PreprocessResultType.Error,
+                        //};
+                    }
                 }
 
-                return new PreprocessResult { Type = PreprocessTypeResult.Ignore };
+                return PreprocessResult.Ignore();
             });
 
             return self;
@@ -93,28 +102,32 @@ namespace ValidatorSam
 
         private static PreprocessResult CommonLimitations(ValidatorPreprocessArgs arg, object min, object max)
         {
-            if (arg.NewValue is IComparable nc)
+            if (arg.NewValue is IComparable nc && arg.NewValue.GetType() == min.GetType())
             {
                 if (nc.CompareTo(min) < 0)
                 {
-                    return new PreprocessResult
-                    {
-                        ErrorText = $"Значение не может быть меньше {min}",
-                        ValueResult = min,
-                    };
+                    return PreprocessResult.Error($"Значение не может быть меньше {min}", min, null);
+                    //return new PreprocessResult
+                    //{
+                    //    ErrorText = $"Значение не может быть меньше {min}",
+                    //    ResultType = PreprocessResultType.Error,
+                    //    ValueResult = min,
+                    //};
                 }
 
                 if (nc.CompareTo(max) > 0)
                 {
-                    return new PreprocessResult
-                    {
-                        ErrorText = $"Значение не может быть больше {max}",
-                        ValueResult = max,
-                    };
+                    return PreprocessResult.Error($"Значение не может быть больше {max}", max, null);
+                    //return new PreprocessResult
+                    //{
+                    //    ErrorText = $"Значение не может быть больше {max}",
+                    //    ResultType= PreprocessResultType.Error,
+                    //    ValueResult = max,
+                    //};
                 }
             }
 
-            return new PreprocessResult { Type = PreprocessTypeResult.Ignore };
+            return PreprocessResult.Ignore();
         }
     }
 }

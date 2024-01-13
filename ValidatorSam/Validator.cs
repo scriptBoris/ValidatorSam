@@ -16,12 +16,17 @@ namespace ValidatorSam
     public delegate void EventHandlerSure<T>(Validator invoker, T args);
 
     /// <summary>
+    /// Delegate for preprocess input value
+    /// </summary>
+    public delegate PreprocessResult PreprocessorHandler(ValidatorPreprocessArgs args);
+
+    /// <summary>
     /// Base class validator
     /// </summary>
     public abstract class Validator : INotifyPropertyChanged
     {
-        internal readonly List<Func<ValidatorPreprocessArgs, PreprocessResult>> _preprocess =
-            new List<Func<ValidatorPreprocessArgs, PreprocessResult>>();
+        internal readonly List<PreprocessorHandler> _preprocess = new List<PreprocessorHandler>();
+        internal PreprocessorHandler? _defaultCast;
 
         private object? _value;
         private string? _rawValue;
@@ -30,8 +35,10 @@ namespace ValidatorSam
         private bool _isValid;
         internal string? _requiredText;
         internal bool _isRequired;
+        internal string? _customName;
         private string _name = "undefined";
         internal bool _isGenericStringType;
+        private bool unlockVisualValid;
 
         /// <summary>
         /// Implementation INotifyPropertyChanged event
@@ -63,20 +70,7 @@ namespace ValidatorSam
             get => _value;
             set
             {
-                var oldValue = _value;
-                var castResult = CastValue(_value, value);
-                _value = castResult.ValueResult;
-                _rawValue = castResult.TextResult;
-
-                var res = InternalCheckValid(_value, castResult);
-
-                IsValid = res.IsValid;
-                TextError = res.TextError;
-                ErrorChanged?.Invoke(this, ValidatorErrorTextArgs.Calc(!res.IsValid, res.TextError));
-                ValueChanged?.Invoke(this, new ValidatorValueChangedArgs(oldValue, _value));
-                ThrowValueChangeListener(oldValue, _value);
-                OnPropertyChanged(nameof(Value));
-                OnPropertyChanged(nameof(RawValue));
+                SetValue(_value, value, true, true, true);
             }
         }
 
@@ -90,7 +84,19 @@ namespace ValidatorSam
         public string? RawValue
         {
             get => _rawValue ?? _value?.ToString();
-            set => Value = value;
+            set
+            {
+                if (_rawValue == value)
+                    return;
+
+                if (RawCastValue(_rawValue, value, out var result, out var raw))
+                {
+                    _rawValue = raw;
+
+                    if (!Equals(_value, result))
+                        SetValue(_value, result, false, true, true);
+                }
+            }
         }
 
         /// <summary>
@@ -148,6 +154,21 @@ namespace ValidatorSam
             {
                 _isValid = value;
                 OnPropertyChanged(nameof(IsValid));
+                OnPropertyChanged(nameof(IsVisualValid));
+            }
+        }
+
+        /// <summary>
+        /// Humal-like validation flag for easy XAML binding
+        /// </summary>
+        public bool IsVisualValid
+        {
+            get
+            {
+                if (!unlockVisualValid)
+                    return true;
+                else
+                    return IsValid && TextError == null;
             }
         }
 
@@ -177,13 +198,16 @@ namespace ValidatorSam
         /// </summary>
         public string Name
         {
-            get => _name; /*?? new StackTrace().GetFrame(1).Get;*/
-            internal set => _name = value;
+            get => _customName ?? _name;
+            internal set
+            {
+                _name = value;
+            }
         }
         #endregion props
 
+        public abstract bool CanNotBeNull { get; }
         protected abstract int RuleCount { get; }
-        protected abstract bool CanNotBeNull { get; }
         protected abstract object CreateDefaultValue();
         protected abstract ValidatorResult ExecuteRule(object? value, int ruleId);
         protected abstract void ThrowValueChangeListener(object? oldValue, object? newValue);
@@ -191,69 +215,103 @@ namespace ValidatorSam
         protected abstract object? CastValue(object value);
 
         #region internal methods
-        private PreprocessResult CastValue(object? old, object? newest)
+        internal void SetValue(object? old, object? newest, bool updateRaw, bool useValidations, bool usePreprocessors)
         {
-            string? oldStr = null;
-            string? newStr = null;
-
-            if (!TryCastValue(old, out object? oldT))
+            ValidatorResult? prepError = null;
+            string? newRaw = null;
+            object? newValue = newest;
+            bool forceUpdateRaw = false;
+            if (usePreprocessors)
             {
-                if (old is string oldAsString)
-                    oldStr = oldAsString;
+                var args = new ValidatorPreprocessArgs
+                {
+                    NewValue = newValue,
+                    OldValue = old,
+                };
+                foreach (var preprocessor in _preprocess)
+                {
+                    var pres = preprocessor(args);
+                    switch (pres.ResultType)
+                    {
+                        case PreprocessResultType.Success:
+                            newRaw = pres.RawResult;
+                            newValue = pres.ValueResult;
+                            break;
+                        case PreprocessResultType.Error:
+                            prepError = new ValidatorResult(false, pres.ErrorText, Name);
+                            newRaw = pres.RawResult;
+                            newValue = pres.ValueResult;
+                            forceUpdateRaw = true;
+                            break;
+                        case PreprocessResultType.Ignore:
+                            continue;
+                        default:
+                            throw new NotImplementedException();
+                    }
+                }
             }
 
-            if (!TryCastValue(newest, out object? newestT))
+            _value = newValue;
+
+            if (updateRaw || forceUpdateRaw)
+                _rawValue = newRaw;
+
+            if (useValidations)
             {
-                if (newest is string newestAsString)
-                    newStr = newestAsString;
-            }
-
-            if (_isGenericStringType)
-            {
-                oldStr = old as string;
-                newStr = newest as string;
-            }
-
-            var final = newestT;
-            var args = new ValidatorPreprocessArgs
-            {
-                IsString = newStr != null,
-                StringOldValue = oldStr,
-                StringNewValue = newStr,
-                OldValue = oldT,
-                NewValue = newestT,
-            };
-
-            PreprocessResult? completedPreprocessor = null;
-            foreach (var item in _preprocess)
-            {
-                var preprocessResult = item.Invoke(args);
-                if (preprocessResult.Type == PreprocessTypeResult.Ignore)
-                    continue;
-
-                completedPreprocessor = preprocessResult;
-                final = preprocessResult.ValueResult;
-
-                if (preprocessResult.Type == PreprocessTypeResult.Error)
-                    break;
+                ValidatorResult res;
+                if (prepError != null)
+                    res = prepError.Value;
                 else
-                    args = preprocessResult.AsArg(args);
+                    res = InternalCheckValid(_value, true, false);
+
+                unlockVisualValid = true;
+                IsValid = res.IsValid;
+                TextError = res.TextError;
+                ErrorChanged?.Invoke(this, ValidatorErrorTextArgs.Calc(!res.IsValid, res.TextError));
             }
 
-            // catch value for elementary type (int, 
-            if (final == null && CanNotBeNull)
-                final = CreateDefaultValue();
-
-            return new PreprocessResult
+            if (!Equals(old, _value))
             {
-                Type = completedPreprocessor?.Type ?? PreprocessTypeResult.Success,
-                ErrorText = completedPreprocessor?.ErrorText,
-                TextResult = completedPreprocessor?.TextResult ?? final?.ToString(),
-                ValueResult = final,
-            };
+                ValueChanged?.Invoke(this, new ValidatorValueChangedArgs(old, _value));
+                ThrowValueChangeListener(old, _value);
+                OnPropertyChanged(nameof(Value));
+            }
+
+            if (updateRaw)
+                OnPropertyChanged(nameof(RawValue));
         }
 
-        private ValidatorResult InternalCheckValid(object? genericValue, PreprocessResult castResult)
+        private bool RawCastValue(string? old, string? newest, out object? result, out string? raw)
+        {
+            var args = new ValidatorPreprocessArgs
+            {
+                OldValue = old,
+                NewValue = newest,
+            };
+
+            if (_defaultCast != null)
+            {
+                var castResult = _defaultCast(args);
+                if (castResult.ResultType == PreprocessResultType.Success)
+                {
+                    raw = castResult.RawResult;
+                    result = castResult.ValueResult;
+                    return true;
+                }
+            }
+            else
+            {
+                result = newest;
+                raw = newest;
+                return true;
+            }
+
+            result = null;
+            raw = newest;
+            return false;
+        }
+
+        private ValidatorResult InternalCheckValid(object? genericValue, bool useValidation, bool usePreprocessors)
         {
             bool isValid = true;
             string? textError = null;
@@ -271,19 +329,32 @@ namespace ValidatorSam
                 }
             }
 
-            if (castResult.ErrorText != null)
+            if (usePreprocessors)
             {
-                return new ValidatorResult(false, castResult.ErrorText, _name);
+                foreach (var item in _preprocess)
+                {
+                    var res = item(new ValidatorPreprocessArgs
+                    {
+                        OldValue = _value,
+                        NewValue = genericValue,
+                    });
+
+                    if (res.ResultType == PreprocessResultType.Error)
+                        return new ValidatorResult(false, res.ErrorText, Name);
+                }
             }
 
-            for (int i = 0; i < RuleCount; i++)
+            if (useValidation)
             {
-                var ruleResult = ExecuteRule(genericValue, i);
-                if (!ruleResult.IsValid)
+                for (int i = 0; i < RuleCount; i++)
                 {
-                    isValid = false;
-                    textError = ruleResult.TextError;
-                    break;
+                    var ruleResult = ExecuteRule(genericValue, i);
+                    if (!ruleResult.IsValid)
+                    {
+                        isValid = false;
+                        textError = ruleResult.TextError;
+                        break;
+                    }
                 }
             }
 
@@ -332,9 +403,8 @@ namespace ValidatorSam
         /// </summary>
         public ValidatorResult CheckValid()
         {
-            //var value = CastValue(Value);
-
-            var res = InternalCheckValid(Value, new PreprocessResult());
+            var res = InternalCheckValid(Value, true, true);
+            unlockVisualValid = true;
             IsValid = res.IsValid;
             TextError = res.TextError;
             ErrorChanged?.Invoke(this, ValidatorErrorTextArgs.Calc(!res.IsValid, res.TextError));
@@ -346,23 +416,28 @@ namespace ValidatorSam
         /// </summary>
         public void SetValueAsRat(object? value, RatModes mode)
         {
-            switch (mode)
+            bool skipValidations = mode.HasFlag(RatModes.SkipValidation);
+            bool skipPreprocessors = mode.HasFlag(RatModes.SkipPreprocessors);
+
+            if (mode.HasFlag(RatModes.Default))
             {
-                case RatModes.Init:
-                    _value = value;
-                    _rawValue = value?.ToString();
-                    InitValue = value;
-                    break;
-
-                case RatModes.NoThrowEvents:
-                    _value = value;
-                    _rawValue = value?.ToString();
-                    break;
-
-                default:
-                    Value = value;
-                    break;
+                SetValue(_value, value, true, !skipValidations, !skipPreprocessors);
             }
+
+            if (mode.HasFlag(RatModes.InitValue))
+            {
+                InitValue = value;
+            }
+        }
+
+        /// <summary>
+        /// The rat's method for handmade setup error
+        /// </summary>
+        public void SetError(string textError)
+        {
+            IsValid = false;
+            TextError = textError;
+            ErrorChanged?.Invoke(this, ValidatorErrorTextArgs.Calc(true, textError));
         }
 
         /// <summary>
@@ -373,33 +448,43 @@ namespace ValidatorSam
         {
             var list = new List<Validator>();
             var t = validatorHoster.GetType();
-            var f = t.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            foreach (var item in f)
+            var rootProperties = t.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            foreach (var rootProperty in rootProperties)
             {
-                if (item.PropertyType.BaseType == typeof(Validator))
+                if (rootProperty.PropertyType.BaseType == typeof(Validator))
                 {
-                    var v = item.GetValue(validatorHoster);
+                    var v = rootProperty.GetValue(validatorHoster);
                     if (v is Validator validator)
                         list.Add(validator);
                 }
-                else if (item.PropertyType
+                // container
+                else if (rootProperty.PropertyType
+                    .GetInterfaces()
+                    .Any(x => x == typeof(IValidatorHost)))
+                {
+                    var container = rootProperty.GetValue(validatorHoster);
+                    var containerFiels = GetAll(container);
+                    list.AddRange(containerFiels);
+                }
+                // list, array, etc
+                else if (rootProperty.PropertyType
                     .GetInterfaces()
                     .Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
                 {
-                    var genericT = item.PropertyType.GenericTypeArguments.FirstOrDefault();
+                    var genericT = rootProperty.PropertyType.GenericTypeArguments.FirstOrDefault();
                     if (genericT == null)
                         continue;
 
                     if (genericT.GetInterfaces().Any(x => x == typeof(IValidatorHost)))
                     {
-                        var v = item.GetValue(validatorHoster);
-                        if (v is IEnumerable<IValidatorHost> vv)
+                        var v = rootProperty.GetValue(validatorHoster);
+                        if (v is IEnumerable<IValidatorHost> collection)
                         {
-                            foreach (var i in vv)
+                            foreach (var item in collection)
                             {
-                                var ims = GetAll(i);
-                                if (ims != null && ims.Length > 0)
-                                    list.AddRange(ims);
+                                var fields = GetAll(item);
+                                if (fields != null && fields.Length > 0)
+                                    list.AddRange(fields);
                             }
                         }
                     }

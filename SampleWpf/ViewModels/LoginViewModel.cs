@@ -35,6 +35,12 @@ namespace SampleWpf.ViewModels
                 return;
             }
 
+            if (Email == "test@mail.com")
+            {
+                Email.SetError($"Email \"{Email.Value}\" is busy");
+                return;
+            }
+
             string email = Email;
             string pass = Password;
             string fields = $"email: \"{email}\"\npass: \"{pass}\"";

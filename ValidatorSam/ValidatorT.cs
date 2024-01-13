@@ -23,9 +23,6 @@ namespace ValidatorSam
             var genericType = typeof(T);
             _isGenericStringType = genericType == typeof(string);
             _canNotBeNull = genericType.IsValueType;
-
-            if (_canNotBeNull)
-                SetValueAsRat(default(T), RatModes.Init);
         }
 
         public new T Value
@@ -51,7 +48,7 @@ namespace ValidatorSam
         }
 
         protected override int RuleCount => _rules.Count;
-        protected override bool CanNotBeNull => _canNotBeNull;
+        public override bool CanNotBeNull => _canNotBeNull;
 
         protected override ValidatorResult ExecuteRule(object? value, int ruleId)
         {
@@ -112,6 +109,12 @@ namespace ValidatorSam
 
         protected override bool TryCastValue(object? value, out object? cast)
         {
+            if (value == null || value == default)
+            {
+                cast = default(T);
+                return false;
+            }
+
             if (value is T t)
             {
                 cast = t;
@@ -119,8 +122,7 @@ namespace ValidatorSam
             }
             else
             {
-                cast = default(T);
-                return false;
+                throw new InvalidOperationException("Please use Binding \"RawValue\" instead of \"Value\"");
             }
         }
 
