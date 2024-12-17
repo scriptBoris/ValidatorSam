@@ -1,0 +1,41 @@
+﻿<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:SampleWpf.Views"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewmodels="clr-namespace:SampleWpf.ViewModels"
+        x:Class="SampleWpf.Views.SilentInitWindow"
+        Title="SilentInitWindow"
+        Width="400"
+        Height="450"
+        d:DataContext="{d:DesignInstance viewmodels:SilentInitViewModel}"
+        WindowStartupLocation="CenterScreen"
+        mc:Ignorable="d">
+    <Grid>
+        <StackPanel Margin="10">
+            <TextBlock Text="string"/>
+            <TextBox Text="{Binding StringField.Value, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBlock Foreground="Red"
+                       Text="{Binding StringField.TextError}"/>
+
+            <TextBlock Text="int nullable"/>
+            <TextBox Text="{Binding IntField.RawValue, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBlock Foreground="Red"
+                       Text="{Binding IntField.TextError}"/>
+
+            <TextBlock Text="double nullable"/>
+            <TextBox Text="{Binding DoubleField.RawValue, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBlock Foreground="Red"
+                       Text="{Binding DoubleField.TextError}"/>
+
+            <TextBlock Text="bool nullable"/>
+            <CheckBox IsChecked="{Binding BoolField.Value, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBlock Foreground="Red"
+                       Text="{Binding BoolField.TextError}"/>
+
+            <Button Command="{Binding CommandCheckValid}">
+                <TextBlock Text="Check valid"/>
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>

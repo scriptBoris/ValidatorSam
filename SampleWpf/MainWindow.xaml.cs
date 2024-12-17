@@ -60,5 +60,13 @@ namespace WpfTest
             window.DataContext = new BadDataViewModel();
             window.Show();
         }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            var window = new SilentInitWindow();
+            window.Owner = this;
+            window.DataContext = new SilentInitViewModel();
+            window.Show();
+        }
     }
 }

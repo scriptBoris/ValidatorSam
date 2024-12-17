@@ -28,6 +28,7 @@ namespace ValidatorSam
         internal readonly List<PreprocessorHandler> _preprocess = new List<PreprocessorHandler>();
         internal PreprocessorHandler? _defaultCast;
 
+        private bool _isValueDefined;
         private object? _value;
         private string? _rawValue;
         internal bool _isEnabled = true;
@@ -270,7 +271,7 @@ namespace ValidatorSam
                 ErrorChanged?.Invoke(this, ValidatorErrorTextArgs.Calc(!res.IsValid, res.TextError));
             }
 
-            if (!Equals(old, _value))
+            if (_isValueDefined && !Equals(old, _value))
             {
                 ValueChanged?.Invoke(this, new ValidatorValueChangedArgs(old, _value));
                 ThrowValueChangeListener(old, _value);
@@ -279,6 +280,8 @@ namespace ValidatorSam
 
             if (updateRaw)
                 OnPropertyChanged(nameof(RawValue));
+
+            _isValueDefined = true;
         }
 
         private bool RawCastValue(string? old, string? newest, out object? result, out string? raw)
@@ -419,14 +422,14 @@ namespace ValidatorSam
             bool skipValidations = mode.HasFlag(RatModes.SkipValidation);
             bool skipPreprocessors = mode.HasFlag(RatModes.SkipPreprocessors);
 
-            if (mode.HasFlag(RatModes.Default))
-            {
-                SetValue(_value, value, true, !skipValidations, !skipPreprocessors);
-            }
-
             if (mode.HasFlag(RatModes.InitValue))
             {
                 InitValue = value;
+            }
+
+            if (mode.HasFlag(RatModes.Default))
+            {
+                SetValue(_value, value, true, !skipValidations, !skipPreprocessors);
             }
         }
 
