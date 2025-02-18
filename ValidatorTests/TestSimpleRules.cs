@@ -18,6 +18,23 @@ namespace ValidatorTests
         {
             Property1.Value = 20;
             Assert.AreEqual(true, Property1.IsValid);
+            Assert.AreEqual(null, Property1.TextError);
+        }
+
+        [TestMethod]
+        public void TestRule2()
+        {
+            Property1.Value = 5;
+            Assert.AreEqual(false, Property1.IsValid);
+            Assert.AreEqual("valus is less than 10", Property1.TextError);
+        }
+
+        [TestMethod]
+        public void TestRule3()
+        {
+            Property1.Value = 5;
+            Assert.AreEqual(true, !Property1.IsValid);
+            Assert.AreEqual("valus is less than 10", Property1.TextError);
         }
     }
 }

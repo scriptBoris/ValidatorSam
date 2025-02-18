@@ -29,7 +29,7 @@ namespace SampleWpf.ViewModels
 
         public Validator<string> Email => Validator<string>
             .Build()
-            .UsingRule(x => !MailAddress.TryCreate(x, out MailAddress? m), "No valid email")
+            .UsingRule(x => MailAddress.TryCreate(x, out _), "No valid email")
             .UsingRequired();
 
         public Validator<string> Password => Validator<string>

@@ -31,8 +31,8 @@ namespace SampleWpf.ViewModels
             .UsingRequired();
 
         public Validator<string> StringField => Validator<string>.Build()
-            .UsingRule((x) => x.Length < 3, "Text so short")
-            .UsingRule((x) => x.Length > 15, "Text so long")
+            .UsingRule((x) => x.Length >= 3, "Text so short")
+            .UsingRule((x) => x.Length < 15, "Text so long")
             .UsingValueChangeListener(x =>
             {
                 Debug.WriteLine($"UsingValueChangeListener: newvalue={x.NewValue}");
@@ -40,13 +40,13 @@ namespace SampleWpf.ViewModels
             .UsingRequired();
 
         public Validator<int?> IntField => Validator<int?>.Build()
-            .UsingRule((x) => x < 0, "Cant be less zero")
-            .UsingRule((x) => x < 18, "Cant be less 18")
+            .UsingRule((x) => x >= 0, "Cant be less zero")
+            .UsingRule((x) => x >= 18, "Cant be less 18")
             .UsingRequired();
 
         public Validator<double?> DoubleField => Validator<double?>.Build()
-            .UsingSafeRule((x) => x < 90, "Cant be less 90")
-            .UsingSafeRule((x) => x > 100, "Cant be over 100")
+            .UsingSafeRule((x) => x >= 90, "Cant be less 90")
+            .UsingSafeRule((x) => x <= 100, "Cant be over 100")
             .UsingRequired();
 
         public Validator<bool> BoolField => Validator<bool>.Build()

@@ -21,11 +21,22 @@ namespace ValidatorTests
             })
             .UsingRequired();
 
+        // проверка что данные НЕ были изменены, т.к. указывается те же данные,
+        // что уже используются в самом валидаторе
         [TestMethod]
-        public void Check()
+        public void CheckWillNotChanged()
         {
-            var value = UserRole.Value = UserRoles.Admin;
-            Assert.AreEqual(false, _valueChanged, $"GGG");
+            UserRole.Value = UserRoles.Admin;
+            Assert.AreEqual(false, _valueChanged);
+        }
+
+        // проверка что данные были изменены, т.к. указывается другие данные,
+        // чем те что уже используются в самом валидаторе
+        [TestMethod]
+        public void CheckWillChanged()
+        {
+            UserRole.Value = UserRoles.None;
+            Assert.AreEqual(true, _valueChanged);
         }
     }
 }

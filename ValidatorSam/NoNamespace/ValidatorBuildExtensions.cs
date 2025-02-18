@@ -16,7 +16,7 @@ namespace ValidatorSam
         /// <br/>
         /// ---
         /// <br/>
-        /// Return false for mark this Validator property IsValid as false
+        /// Return <c>false</c> for mark this Validator property IsValid as false
         /// </summary>
         /// <param name="self">builder instance</param>
         /// <param name="rule">function that will be called when a new value (not null) is received. If false is returned, an error will be set</param>
@@ -38,7 +38,7 @@ namespace ValidatorSam
         /// <br/>
         /// ---
         /// <br/>
-        /// Return false for mark this Validator property IsValid as false
+        /// Return <c>false</c> for mark this Validator property IsValid as false
         /// </summary>
         /// <param name="self">builder instance</param>
         /// <param name="rule">function that will be called when a new value (not null) is received. If false is returned, an error will be set</param>
@@ -82,6 +82,7 @@ namespace ValidatorSam
                     int length = newValueStr.Length;
                     if (length < min)
                     {
+                        // TODO Добавить другие языки
                         return PreprocessResult.Error($"Минимум {min} символов", newValueStr, null);
                     }
                     else if (length > max)
@@ -97,6 +98,16 @@ namespace ValidatorSam
         }
 #nullable enable
 
+        /// <summary>
+        /// Creates a preprocessor that limits input values ​​to the ranges min to max.
+        /// <br/>
+        /// --- 
+        /// <br/>
+        /// For example, you can use this to specify DateTime, int or other structs constraints
+        /// </summary>
+        /// <param name="self">builder instance</param>
+        /// <param name="min">minimum</param>
+        /// <param name="max">maximum</param>
         public static ValidatorBuilder<T> UsingLimitations<T>(this ValidatorBuilder<T> self, T min, T max)
             where T : struct
         {
@@ -107,6 +118,16 @@ namespace ValidatorSam
             return self;
         }
 
+        /// <summary>
+        /// Creates a preprocessor that limits input values ​​to the ranges min to max.
+        /// <br/>
+        /// --- 
+        /// <br/>
+        /// For example, you can use this to specify DateTime, int or other structs constraints
+        /// </summary>
+        /// <param name="self">builder instance</param>
+        /// <param name="min">minimum</param>
+        /// <param name="max">maximum</param>
         public static ValidatorBuilder<T?> UsingLimitations<T>(this ValidatorBuilder<T?> self, T min, T max)
             where T : struct
         {
@@ -123,24 +144,13 @@ namespace ValidatorSam
             {
                 if (nc.CompareTo(min) < 0)
                 {
+                    // TODO Добавить поддержку других языков
                     return PreprocessResult.Error($"Значение не может быть меньше {min}", min, null);
-                    //return new PreprocessResult
-                    //{
-                    //    ErrorText = $"Значение не может быть меньше {min}",
-                    //    ResultType = PreprocessResultType.Error,
-                    //    ValueResult = min,
-                    //};
                 }
 
                 if (nc.CompareTo(max) > 0)
                 {
                     return PreprocessResult.Error($"Значение не может быть больше {max}", max, null);
-                    //return new PreprocessResult
-                    //{
-                    //    ErrorText = $"Значение не может быть больше {max}",
-                    //    ResultType= PreprocessResultType.Error,
-                    //    ValueResult = max,
-                    //};
                 }
             }
 

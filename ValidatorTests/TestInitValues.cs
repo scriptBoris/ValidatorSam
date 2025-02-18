@@ -18,17 +18,9 @@ namespace ValidatorTests
         {
         }
 
+        // Инициализированное Value не должно инвокать UsingValueChangeListener
         public Validator<string?> UserEmail => Validator<string?>.Build()
             .UsingValue("boris@gmail.com")
-            .UsingValueChangeListener(x =>
-            {
-                _valueChanged = true;
-            })
-            .UsingRequired();
-
-
-        public Validator<UserRoles> UserRole => Validator<UserRoles>.Build()
-            .UsingValue(UserRoles.Admin)
             .UsingValueChangeListener(x =>
             {
                 _valueChanged = true;
@@ -38,15 +30,37 @@ namespace ValidatorTests
         [TestMethod]
         public void CheckNoInvokeValueChangeListener()
         {
-            var value = UserEmail.Value;
-            Assert.AreEqual(false, _valueChanged, $"GGG");
+            Assert.AreEqual(false, _valueChanged);
         }
+
+        // Инициализированное Value не должно инвокать UsingValueChangeListener
+        // (но уже для типа Enum)
+        public Validator<UserRoles> UserRole => Validator<UserRoles>.Build()
+            .UsingValue(UserRoles.Admin)
+            .UsingValueChangeListener(x =>
+            {
+                _valueChangedEmum = true;
+            })
+            .UsingRequired();
 
         [TestMethod]
         public void CheckNoInvokeValueChangeListenerEnum()
         {
-            var value = UserRole.Value;
-            Assert.AreEqual(false, _valueChangedEmum, $"GGG");
+            Assert.AreEqual(false, _valueChangedEmum);
+        }
+
+        // проверка на изначально "плохие" данные.
+        // суть в том, валидатор должен отображать данные указанные через UsingValue(...)
+        // с высоким приоритетом, даже несмотря на ограничения 18-100
+        public Validator<int> UserAge => Validator<int>.Build()
+            .UsingValue(-20)
+            .UsingLimitations(18, 100)
+            .UsingRequired();
+        [TestMethod]
+        public void CheckBadInitData()
+        {
+            Assert.AreEqual(UserAge.Value, -20);
+            Assert.AreEqual(false, UserAge.IsValid);
         }
     }
 }

@@ -70,7 +70,7 @@ namespace ValidatorSam
                 isValid = true;
             else
                 // If programmer dont catch null, then rule-delegate can throw NullRefException
-                isValid = !rule.Delegate.Invoke(t!);
+                isValid = rule.Delegate.Invoke(t!);
 
             string? error = !isValid ? rule.ErrorText : null;
             return new ValidatorResult(isValid, error, Name);
