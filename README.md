@@ -9,7 +9,7 @@ The library also uses the Fody postprocessor, which allows you to use a simple g
 creating an instance in the constructor or anywhere else. Which will reduce routine amount of code in constructors
 and will increase readability of code.
 
-More info: How it works? (link)
+More info: [How it works?](https://github.com/scriptBoris/ValidatorSam/wiki/How-it-work-with-Fody%3F)
 
 ## UI recommendations
 If your target type is string, int, long or other numbers types so i'm recommend use RawValue for binding UI<-->Data
