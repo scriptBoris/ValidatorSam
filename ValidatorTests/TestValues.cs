@@ -46,7 +46,7 @@ namespace ValidatorTests
 
         // Строка не пустая, внешне указанно: "Boris" (3-40)
         public Validator<string> FirstName => Validator<string>.Build()
-            .UsingSafeTextLimit(3, 40)
+            .UsingTextLimit(3, 40)
             .UsingRequired();
 
         [TestMethod]
@@ -58,7 +58,7 @@ namespace ValidatorTests
 
         // Строка не пустая, внешне указанно: "A" (3-40)
         public Validator<string> LastName => Validator<string>.Build()
-            .UsingSafeTextLimit(3, 40)
+            .UsingTextLimit(3, 40)
             .UsingRequired();
 
         [TestMethod]

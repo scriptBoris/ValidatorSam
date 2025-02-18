@@ -11,6 +11,16 @@ namespace ValidatorSam
 {
     public static class ValidatorBuildExtensions
     {
+        /// <summary>
+        /// If your will use this rule then rule function will not invoked if new value is null.
+        /// <br/>
+        /// ---
+        /// <br/>
+        /// Return false for mark this Validator property IsValid as false
+        /// </summary>
+        /// <param name="self">builder instance</param>
+        /// <param name="rule">function that will be called when a new value (not null) is received. If false is returned, an error will be set</param>
+        /// <param name="error">the message that will be displayed if the rule function returns false</param>
         public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilder<T?> self, Func<T, bool> rule, string error)
             where T : struct
         {
@@ -23,6 +33,16 @@ namespace ValidatorSam
             return self;
         }
 
+        /// <summary>
+        /// If your will use this rule then rule function will not invoked if new value is null.
+        /// <br/>
+        /// ---
+        /// <br/>
+        /// Return false for mark this Validator property IsValid as false
+        /// </summary>
+        /// <param name="self">builder instance</param>
+        /// <param name="rule">function that will be called when a new value (not null) is received. If false is returned, an error will be set</param>
+        /// <param name="error">the message that will be displayed if the rule function returns false</param>
         public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilder<T?> self, Func<T, bool> rule, string error)
             where T : class
         {
@@ -35,7 +55,22 @@ namespace ValidatorSam
             return self;
         }
 
-        public static ValidatorBuilder<string?> UsingTextLimit(this ValidatorBuilder<string?> self, uint min, uint max)
+#nullable disable
+        /// <summary>
+        /// Creates a preprocessor that allows input text is shorter than the min length, but 
+        /// restricts text entry if it is longer than the max length.
+        /// <br/>
+        /// --- 
+        /// <br/>
+        /// Any way if input was out of limits, the Validator will show default error message and
+        /// mark the property IsValid as false
+        /// <br/>
+        /// For null values this preprocessor will did ignored
+        /// </summary>
+        /// <param name="self">builder instance</param>
+        /// <param name="min">minimum text length</param>
+        /// <param name="max">maximum text length</param>
+        public static ValidatorBuilder<string> UsingTextLimit(this ValidatorBuilder<string> self, uint min, uint max)
         {
             self.UsingPreprocessor(x =>
             {
@@ -48,22 +83,10 @@ namespace ValidatorSam
                     if (length < min)
                     {
                         return PreprocessResult.Error($"Минимум {min} символов", newValueStr, null);
-                        //return new PreprocessResult
-                        //{
-                        //    ErrorText = $"Минимум {min} символов",
-                        //    ValueResult = newValueStr,
-                        //    ResultType = PreprocessResultType.Error,
-                        //};
                     }
                     else if (length > max)
                     {
                         return PreprocessResult.Error($"Максимум {max} символов", newValueStr.Substring(0, (int)max + 1), null);
-                        //return new PreprocessResult
-                        //{
-                        //    ErrorText = $"Максимум {max} символов",
-                        //    ValueResult = newValueStr.Substring(0, (int)max + 1),
-                        //    ResultType = PreprocessResultType.Error,
-                        //};
                     }
                 }
 
@@ -72,13 +95,7 @@ namespace ValidatorSam
 
             return self;
         }
-
-        public static ValidatorBuilder<string> UsingSafeTextLimit(this ValidatorBuilder<string> self, uint min, uint max)
-        {
-            self.UsingTextLimit(min, max);
-            return self;
-        }
-
+#nullable enable
 
         public static ValidatorBuilder<T> UsingLimitations<T>(this ValidatorBuilder<T> self, T min, T max)
             where T : struct

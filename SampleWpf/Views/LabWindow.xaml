@@ -15,6 +15,11 @@
 
     <Grid>
         <StackPanel Margin="10">
+            <TextBlock Text="string limited 3-10"/>
+            <TextBox Text="{Binding StringLimitedField.Value, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBlock Foreground="Red"
+                       Text="{Binding StringLimitedField.TextError}"/>
+
             <TextBlock Text="string"/>
             <TextBox Text="{Binding StringField.Value, UpdateSourceTrigger=PropertyChanged}"/>
             <TextBlock Foreground="Red"

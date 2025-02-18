@@ -1,6 +1,7 @@
 ﻿using SampleWpf.Core;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,10 +26,17 @@ namespace SampleWpf.ViewModels
 
         public int MaxName { get; set; } = 20;
 
+        public Validator<string> StringLimitedField => Validator<string>.Build()
+            .UsingTextLimit(3, 10)
+            .UsingRequired();
 
         public Validator<string> StringField => Validator<string>.Build()
             .UsingRule((x) => x.Length < 3, "Text so short")
             .UsingRule((x) => x.Length > 15, "Text so long")
+            .UsingValueChangeListener(x =>
+            {
+                Debug.WriteLine($"UsingValueChangeListener: newvalue={x.NewValue}");
+            })
             .UsingRequired();
 
         public Validator<int?> IntField => Validator<int?>.Build()
