@@ -30,6 +30,31 @@ namespace ValidatorSam
             return result.IsValid;
         }
 
+        /// <summary>
+        /// Manual validation check
+        /// </summary>
+        /// <param name="validators">Array of validators that will check for valid</param>
+        /// <param name="invalids">Detected invalid validators</param>
+        /// <returns>True if not detected invalid validators</returns>
+        public static bool TryCheckSuccess(this Validator[] validators, out Validator[] invalids)
+        {
+            bool isValid = true;
+            var listInvalids = new List<Validator>();
+
+            foreach (var item in validators)
+            {
+                var res = item.CheckValid();
+                if (!res.IsValid)
+                {
+                    isValid = false;
+                    listInvalids.Add(item);
+                }
+            }
+
+            invalids = listInvalids.ToArray();
+            return isValid;
+        }
+
         public static ValidatorResult? FirstInvalidOrDefault(this Validator[] validators)
         {
             ValidatorResult? result = null;
