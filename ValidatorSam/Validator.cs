@@ -444,6 +444,30 @@ namespace ValidatorSam
         }
 
         /// <summary>
+        /// Checks if the current value is different from the initialized value
+        /// </summary>
+        public bool CheckChanges()
+        {
+            if (InitValue == null && Value == null)
+            {
+                return false;
+            }
+            else if (InitValue != null && Value == null)
+            {
+                return true;
+            }
+            else if (InitValue == null && Value != null)
+            {
+                return true;
+            }
+            else
+            {
+                bool isEquals = InitValue!.Equals(Value);
+                return !isEquals;
+            }
+        }
+
+        /// <summary>
         /// Finds all validators inside the specified object using reflection
         /// </summary>
         /// <param name="validatorHoster"></param>
