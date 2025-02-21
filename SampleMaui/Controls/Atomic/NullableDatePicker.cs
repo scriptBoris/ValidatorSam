@@ -13,6 +13,18 @@ public class NullableDatePicker : NPicker.DatePicker
         DateSelected += NullableDatePicker_DateSelected;
     }
 
+    public static readonly BindableProperty BorderColorProperty = BindableProperty.Create(
+        nameof(BorderColor),
+        typeof(Color),
+        typeof(NullableDatePicker),
+        Colors.Gray
+    );
+    public Color BorderColor
+    {
+        get => (Color)GetValue(BorderColorProperty);
+        set => SetValue(BorderColorProperty, value);
+    }
+
     private void NullableDatePicker_DateSelected(object? sender, NPicker.DateChangedEventArguments e)
     {
         if (e.NewDate != null)

@@ -58,14 +58,22 @@
 
             <!--birth date-->
             <Label Text="Birth date"/>
-            <atomic:NullableDatePicker Date="{Binding BirthDate.Value}"/>
+            <atomic:NullableDatePicker Date="{Binding BirthDate.Value}">
+                <atomic:NullableDatePicker.Triggers>
+                    <DataTrigger Binding="{Binding BirthDate.IsVisualValid}"
+                                 TargetType="atomic:NullableDatePicker"
+                                 Value="False">
+                        <Setter Property="BorderColor" Value="Red"/>
+                    </DataTrigger>
+                </atomic:NullableDatePicker.Triggers>
+            </atomic:NullableDatePicker>
             <Label Style="{StaticResource errorValidation}"
                    Text="{Binding BirthDate.TextError}"/>
 
             <!--body weight-->
             <Label Text="Your body weight"/>
             <controls:ValidableEntry Keyboard="Numeric"
-                                     Placeholder="value on kilograms"
+                                     Placeholder="Enter value in kilograms"
                                      Text="{Binding BodyWeight.RawValue}"
                                      Validator="{Binding BodyWeight}"/>
             <Label Style="{StaticResource errorValidation}"

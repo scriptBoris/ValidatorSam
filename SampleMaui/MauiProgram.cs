@@ -25,11 +25,12 @@ namespace SampleMaui
                 {
 #if WINDOWS
                     x.AddHandler(typeof(BorderEntry), typeof(BorderEntryHandler));
+                    x.AddHandler(typeof(NullableDatePicker), typeof(NullableDatePickerHandler));
 #endif
                 });
 
 #if DEBUG
-		builder.Logging.AddDebug();
+            builder.Logging.AddDebug();
 #endif
 
             return builder.Build();

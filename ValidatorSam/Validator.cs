@@ -168,7 +168,6 @@ namespace ValidatorSam
             {
                 _isValid = value;
                 OnPropertyChanged(nameof(IsValid));
-                OnPropertyChanged(nameof(IsVisualValid));
             }
         }
 
@@ -291,6 +290,8 @@ namespace ValidatorSam
                     IsValid = res.IsValid;
                     ValidationChanged?.Invoke(this, IsValid);
                 }
+
+                OnPropertyChanged(nameof(IsVisualValid));
 
                 if (oldTextError != res.TextError)
                 {
