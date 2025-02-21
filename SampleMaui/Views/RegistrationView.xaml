@@ -1,40 +1,110 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:atomic="clr-namespace:SampleMaui.Controls.Atomic"
+             xmlns:controls="clr-namespace:SampleMaui.Controls"
+             xmlns:npicker="clr-namespace:NPicker;assembly=NPicker"
              xmlns:vm="clr-namespace:SampleMaui.ViewModels"
              x:Class="SampleMaui.Views.RegistrationView"
-             x:DataType="vm:RegistrationVm">
-    <VerticalStackLayout Padding="10">
-        <Image
-                Source="dotnet_bot.png"
-                HeightRequest="200"
-                HorizontalOptions="Center" />
-        <Label Text="User name"/>
-        <Entry Text="{Binding UserName.RawValue}"/>
-        <Label Text="{Binding UserName.TextError}"
-               TextColor="DarkRed"
-               HorizontalTextAlignment="End"/>
+             x:DataType="vm:RegistrationVm"
+             Title="Registration"
+             BackgroundColor="{AppThemeBinding Light=#FFF, Dark=#1a1a1a}">
 
-        <Label Text="Password"/>
-        <Entry Text="{Binding Password.RawValue}"/>
-        <Label Text="{Binding Password.TextError}"
-               TextColor="DarkRed"
-               HorizontalTextAlignment="End"/>
+    <ContentPage.Resources>
+        <Style x:Key="errorValidation"
+               TargetType="Label">
+            <Setter Property="TextColor" Value="Red"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+    </ContentPage.Resources>
 
-        <Label Text="Number of years of work experience"/>
-        <Entry Text="{Binding AgeWorkExperience.RawValue}"/>
-        <Label Text="{Binding AgeWorkExperience.TextError}"
-               TextColor="DarkRed"
-               HorizontalTextAlignment="End"/>
+    <ScrollView>
+        <VerticalStackLayout Padding="10"
+                             MaximumWidthRequest="500">
+            <Image HeightRequest="150"
+                   HorizontalOptions="Center"
+                   Source="dotnet_bot.png"/>
 
-        <Label Text="I agree with the license agreement"/>
-        <Switch IsToggled="{Binding IsLicenseAgreement.Value}"/>
-        <Label Text="{Binding IsLicenseAgreement.TextError}"
-               TextColor="DarkRed"
-               HorizontalTextAlignment="End"/>
+            <!--user name-->
+            <Label Text="User name"/>
+            <controls:ValidableEntry ClearButtonVisibility="WhileEditing"
+                                     IsSpellCheckEnabled="False"
+                                     Placeholder="Required"
+                                     Style="{StaticResource validation_entry}"
+                                     Text="{Binding UserName.RawValue}"
+                                     Validator="{Binding UserName}"/>
+            <Label Style="{StaticResource errorValidation}"
+                   Text="{Binding UserName.TextError}"/>
 
-        <Button Text="Register"
-                Command="{Binding CommandRegister}"/>
+            <!--email-->
+            <Label Text="Email"/>
+            <controls:ValidableEntry ClearButtonVisibility="WhileEditing"
+                                     IsSpellCheckEnabled="False"
+                                     Placeholder="Required"
+                                     Text="{Binding Email.RawValue}"
+                                     Validator="{Binding Email}"/>
+            <Label Style="{StaticResource errorValidation}"
+                   Text="{Binding Email.TextError}"/>
 
-    </VerticalStackLayout>
+            <!--Number of years of work experience-->
+            <Label Text="Number of years of work experience"/>
+            <controls:ValidableEntry ClearButtonVisibility="WhileEditing"
+                                     Keyboard="Numeric"
+                                     Placeholder="Required"
+                                     Text="{Binding AgeWorkExperience.RawValue}"
+                                     Validator="{Binding AgeWorkExperience}"/>
+            <Label Style="{StaticResource errorValidation}"
+                   Text="{Binding AgeWorkExperience.TextError}"/>
+
+            <!--birth date-->
+            <Label Text="Birth date"/>
+            <atomic:NullableDatePicker Date="{Binding BirthDate.Value}"/>
+            <Label Style="{StaticResource errorValidation}"
+                   Text="{Binding BirthDate.TextError}"/>
+
+            <!--body weight-->
+            <Label Text="Your body weight"/>
+            <controls:ValidableEntry Keyboard="Numeric"
+                                     Placeholder="value on kilograms"
+                                     Text="{Binding BodyWeight.RawValue}"
+                                     Validator="{Binding BodyWeight}"/>
+            <Label Style="{StaticResource errorValidation}"
+                   Text="{Binding BodyWeight.TextError}"/>
+
+            <!--password-->
+            <Label Text="Password"/>
+            <controls:ValidableEntry IsPassword="True"
+                                     Placeholder="Required"
+                                     Text="{Binding Password.RawValue}"
+                                     Validator="{Binding Password}"/>
+            <Label Style="{StaticResource errorValidation}"
+                   Text="{Binding Password.TextError}"/>
+
+            <!--confirm password-->
+            <Label Text="Confirm password"/>
+            <controls:ValidableEntry IsPassword="True"
+                                     Placeholder="Required"
+                                     Text="{Binding PasswordConfirm.RawValue}"
+                                     Validator="{Binding PasswordConfirm}"/>
+            <Label Style="{StaticResource errorValidation}"
+                   Text="{Binding PasswordConfirm.TextError}"/>
+
+            <!--license agreement-->
+            <HorizontalStackLayout>
+                <CheckBox IsChecked="{Binding IsLicenseAgreement.Value}"/>
+                <Label HorizontalTextAlignment="Start"
+                       VerticalTextAlignment="Center"
+                       Text="I agree with the license agreement"/>
+            </HorizontalStackLayout>
+
+            <Label Style="{StaticResource errorValidation}"
+                   Text="{Binding IsLicenseAgreement.TextError}"/>
+
+            <Button Margin="0,20,0,0"
+                    Command="{Binding CommandRegister}"
+                    IsEnabled="{Binding All.IsValid}"
+                    Text="Register"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

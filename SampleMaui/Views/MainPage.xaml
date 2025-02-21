@@ -2,33 +2,17 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:SampleMaui.ViewModels"
+             x:Class="SampleMaui.Views.MainPage"
              x:DataType="vm:MainVm"
-             x:Class="SampleMaui.Views.MainPage">
+             Title="Sample app">
 
     <ScrollView>
-        <VerticalStackLayout
-            Spacing="25"
-            Padding="30,0"
-            VerticalOptions="Center">
+        <VerticalStackLayout VerticalOptions="Center"
+                             Padding="30,0"
+                             Spacing="25">
 
-            <Button Text="Registration"
-                    Command="{Binding CommandRegistration}"/>
-
-            <!--<Image
-                Source="dotnet_bot.png"
-                HeightRequest="200"
-                HorizontalOptions="Center" />
-
-            <Label
-                Text="Hello, World!"
-                FontSize="32"
-                HorizontalOptions="Center" />
-
-            <Label
-                Text="Welcome to .NET Multi-platform App UI"
-                FontSize="18"
-                HorizontalOptions="Center" />-->
-
+            <Button Command="{Binding CommandRegistration}"
+                    Text="Open sample registration"/>
         </VerticalStackLayout>
     </ScrollView>
 

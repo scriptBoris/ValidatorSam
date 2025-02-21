@@ -17,12 +17,12 @@ namespace ValidatorSam.Fody.Postprocessing
         ///     field = SetMethod(); <br/>
         /// return field;
         /// </summary>
-        public static void GenerateBody(this MethodDefinition method, MethodDefinition setMethod, FieldDefinition field)
+        public static void GenerateBody(this MethodDefinition method, MethodDefinition setMethod, FieldDefinition field, MethodReference methodSetName)
         {
             var il = method.Body.GetILProcessor();
             var skip = Instruction.Create(OpCodes.Nop);
             string methodName = method.Name.Replace("get_", "");
-            var methodSetName = ModuleWeaver.Instance.MethodSetName;
+            //var methodSetName = ModuleWeaver.Instance.MethodSetName;
 
             // IF
             il.Emit(OpCodes.Ldarg_0);
@@ -36,10 +36,13 @@ namespace ValidatorSam.Fody.Postprocessing
             il.Emit(OpCodes.Stfld, field);
 
             // SET NAME
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Ldfld, field);
-            il.Emit(OpCodes.Ldstr, methodName);
-            il.Emit(OpCodes.Callvirt, methodSetName);
+            if (methodSetName != null)
+            {
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldfld, field);
+                il.Emit(OpCodes.Ldstr, methodName);
+                il.Emit(OpCodes.Callvirt, methodSetName);
+            }
 
             // ENDIF
             il.Append(skip);

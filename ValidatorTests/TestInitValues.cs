@@ -62,5 +62,31 @@ namespace ValidatorTests
             Assert.AreEqual(UserAge.Value, -20);
             Assert.AreEqual(false, UserAge.IsValid);
         }
+
+
+        // По умолчанию IsValid должен быть false!
+        // Даже если инициализированное значение имеет валидные данные
+        public Validator<string> DefaultName => Validator<string>.Build()
+            .UsingValue("valid")
+            .UsingRule(x => x == "valid", "ERROR");
+        [TestMethod]
+        public void CheckDefaultIsValid()
+        {
+            string value = DefaultName.Value;
+            Assert.AreEqual(false, DefaultName.IsValid);
+        }
+
+        // Проверка на IsVisualValid
+        // По умолчанию IsVisualValid должен быть true, даже если инициализированное значение
+        // имеет невалидные данные
+        public Validator<string> DefaultIsVisualValid => Validator<string>.Build()
+            .UsingValue("invalid")
+            .UsingRule(x => x == "valid", "ERROR");
+        [TestMethod]
+        public void CheckDefaultIsVisualValid()
+        {
+            string value = DefaultName.Value;
+            Assert.AreEqual(true, DefaultName.IsVisualValid);
+        }
     }
 }

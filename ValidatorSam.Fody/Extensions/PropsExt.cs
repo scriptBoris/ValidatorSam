@@ -17,5 +17,16 @@ namespace ValidatorSam.Fody.Extensions
 
             return false;
         }
+
+        public static bool IsAutoValidatorGroup(this PropertyDefinition prop, bool usingDebug = true)
+        {
+            if (prop.SetMethod != null)
+                return false;
+
+            if (prop.GetMethod.IsMethodGetterValidatorGroup(usingDebug))
+                return true;
+
+            return false;
+        }
     }
 }

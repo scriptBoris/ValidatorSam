@@ -21,7 +21,6 @@ namespace ValidatorSam.Fody.Postprocessing
             var list = new List<TypeDefinition>();
 
             var root = weaver.ModuleDefinition.Types;
-            //var root = weaver.ModuleDefinition.Types.Where(x => x.IsUsingValidatorSam());
 
             foreach (var item in root)
             {

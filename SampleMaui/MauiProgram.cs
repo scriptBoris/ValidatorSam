@@ -1,4 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
+using NPicker;
+using SampleMaui.Controls.Atomic;
+
+#if WINDOWS
+using SampleMaui.Platforms.Windows;
+#endif
 
 namespace SampleMaui
 {
@@ -9,10 +15,17 @@ namespace SampleMaui
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseNPicker()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                })
+                .ConfigureMauiHandlers(x =>
+                {
+#if WINDOWS
+                    x.AddHandler(typeof(BorderEntry), typeof(BorderEntryHandler));
+#endif
                 });
 
 #if DEBUG

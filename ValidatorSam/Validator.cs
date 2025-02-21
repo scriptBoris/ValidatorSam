@@ -16,6 +16,11 @@ namespace ValidatorSam
     public delegate void EventHandlerSure<T>(Validator invoker, T args);
 
     /// <summary>
+    /// Default delegate validator
+    /// </summary>
+    public delegate void EventHandlerSure(Validator invoker);
+
+    /// <summary>
     /// Delegate for preprocess input value
     /// </summary>
     public delegate PreprocessResult PreprocessorHandler(ValidatorPreprocessArgs args);
@@ -61,6 +66,11 @@ namespace ValidatorSam
         /// Fires when a property IsEnabled has been changed
         /// </summary>
         public event EventHandlerSure<bool>? EnabledChanged;
+
+        /// <summary>
+        /// Fires when a property IsValid has been changed
+        /// </summary>
+        public event EventHandlerSure<bool>? ValidationChanged;
 
         #region props
         /// <summary>
@@ -146,7 +156,10 @@ namespace ValidatorSam
         }
 
         /// <summary>
-        /// Validation flag
+        /// Validation flag 
+        /// <br/>
+        /// By default this property contains False;
+        /// It will be changed if Value, RawValue is changed or manual validation is called
         /// </summary>
         public bool IsValid
         {
@@ -160,7 +173,11 @@ namespace ValidatorSam
         }
 
         /// <summary>
-        /// Humal-like validation flag for easy XAML binding
+        /// Humal-like validation flag for easy XAML binding.
+        /// <br/>
+        /// If <c>Value</c> or <c>RawValue</c> is changed or manual validation is called, this 
+        /// property will return IsValid;
+        /// Otherwise: this property will return True;
         /// </summary>
         public bool IsVisualValid
         {
@@ -265,10 +282,21 @@ namespace ValidatorSam
                 else
                     res = InternalCheckValid(_value, true, false);
 
+                bool oldValid = IsValid;
+                string? oldTextError = TextError;
+
                 unlockVisualValid = true;
-                IsValid = res.IsValid;
-                TextError = res.TextError;
-                ErrorChanged?.Invoke(this, ValidatorErrorTextArgs.Calc(!res.IsValid, res.TextError));
+                if (oldValid != res.IsValid)
+                {
+                    IsValid = res.IsValid;
+                    ValidationChanged?.Invoke(this, IsValid);
+                }
+
+                if (oldTextError != res.TextError)
+                {
+                    TextError = res.TextError;
+                    ErrorChanged?.Invoke(this, ValidatorErrorTextArgs.Calc(!res.IsValid, res.TextError));
+                }
             }
 
             if (_isValueDefined && !Equals(old, _value))
@@ -412,6 +440,19 @@ namespace ValidatorSam
             TextError = res.TextError;
             ErrorChanged?.Invoke(this, ValidatorErrorTextArgs.Calc(!res.IsValid, res.TextError));
             return res;
+        }
+
+        /// <summary>
+        /// If there is a visual error, then a manual validation check will be called. 
+        /// And if the validation is successful (no errors), then error will be removed.
+        /// </summary>
+        public bool TryToRemoveError()
+        {
+            if (IsVisualValid)
+                return false;
+
+            var res = CheckValid();
+            return res.IsValid;
         }
 
         /// <summary>

@@ -17,13 +17,18 @@ namespace ValidatorSam.Fody
         public const string TYPE_VALIDATORTSAM_T = @"Validator`1";
         public const string TYPE_VALIDATORTSAM = @"Validator";
 
+        public const string METHOD_BUILD_GROUP_NAME = "ValidatorSam.ValidatorGroupBuilder ValidatorSam.ValidatorGroup::Build()";
+        public const string TYPE_VALIDATOR_GROUP = @"ValidatorGroup";
+
         public static ModuleWeaver Instance { get; private set; }
 
         public AssemblyNameReference ValidatorSam_Dll { get; private set; }   
         public TypeReference ValidatorT_TypeRefrence { get; private set; }
         public TypeReference Validator_TypeRefrence { get; private set; }
+        public TypeReference ValidatorGroup_TypeReference { get; private set; }
         public MethodReference MethodBuild { get; private set; }
         public MethodReference MethodSetName { get; private set; }
+        public MethodReference MethodGroupBuild { get; private set; }
 
         public override void Execute()
         {
@@ -55,6 +60,12 @@ namespace ValidatorSam.Fody
                     throw new Exception("Not found Validator class");
                 Debug("OK: Validator class is matched!");
 
+                // find validatorGroup type
+                ValidatorGroup_TypeReference = FindTypeRef(ValidatorSam_Dll, TYPE_VALIDATOR_GROUP);
+                if (ValidatorGroup_TypeReference == null)
+                    throw new Exception("Not found ValidatorGroup class");
+                Debug("OK: ValidatorGroup class is matched");
+
                 // find build method
                 MethodBuild = FindMethod(ValidatorT_TypeRefrence, METHOD_BUILD_NAME);
                 if (MethodBuild == null)
@@ -66,6 +77,12 @@ namespace ValidatorSam.Fody
                 if (MethodSetName == null)
                     throw new Exception($"Not found {METHOD_SETNAME_NAME} method");
                 Debug($"OK: method <SetName> is matched!");
+
+                // find group build method
+                MethodGroupBuild = FindMethod(ValidatorGroup_TypeReference, METHOD_BUILD_GROUP_NAME);
+                if (MethodGroupBuild == null)
+                    throw new Exception($"Not found ValidatorGroup.Build() method");
+                Debug($"OK: method <Group.Build> is matched!");
 
                 MethodSetName = this.ModuleDefinition.ImportReference(MethodSetName);
 
@@ -82,7 +99,10 @@ namespace ValidatorSam.Fody
 
                 // inject
                 foreach (var item in types)
+                {
                     item.InjectFixInClass(this);
+                    item.InjectGroupFixInClass(this);
+                }
             }
             catch (Exception ex)
             {

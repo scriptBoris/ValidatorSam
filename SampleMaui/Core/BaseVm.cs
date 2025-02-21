@@ -13,9 +13,9 @@ namespace SampleMaui.Core
             App.Current.MainPage.Navigation.PushAsync(page);
         }
 
-        protected void DisplayMessage(string msg)
+        protected void DisplayMessage(string msg, string title = "Message")
         {
-            App.Current.MainPage.DisplayAlert("Message", msg, "OK");
+            App.Current.MainPage.DisplayAlert(title, msg, "OK");
         }
     }
 }

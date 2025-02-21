@@ -22,7 +22,8 @@ namespace ValidatorSam.Fody.Extensions
                 if (item.SetMethod != null)
                     continue;
 
-                if (item.GetMethod.IsMethodGetterValidator(true, consoleSpacing + 1))
+                if (item.GetMethod.IsMethodGetterValidator(true, consoleSpacing + 1) ||
+                    item.GetMethod.IsMethodGetterValidatorGroup(true, consoleSpacing + 1))
                     result = true;
             } 
 
@@ -36,6 +37,7 @@ namespace ValidatorSam.Fody.Extensions
         {
             var rand = new Random();
             var getters = classType.Properties.Where(x => x.IsAutoValidator(false)).ToArray();
+            var methodSetName = ModuleWeaver.Instance.MethodSetName;
 
             foreach (var getterProp in getters)
             {
@@ -71,7 +73,50 @@ namespace ValidatorSam.Fody.Extensions
                     newGetterMethod.Body.Variables.Add(item);
 
                 classType.Methods.Add(newGetterMethod);
-                originGetterMethod.GenerateBody(newGetterMethod, field);
+                originGetterMethod.GenerateBody(newGetterMethod, field, methodSetName);
+            }
+        }
+
+        public static void InjectGroupFixInClass(this TypeDefinition classType, BaseModuleWeaver weaver)
+        {
+            var rand = new Random();
+            var getters = classType.Properties.Where(x => x.IsAutoValidatorGroup(false)).ToArray();
+
+            foreach (var getterProp in getters)
+            {
+                int id = rand.Next(0, 1000000);
+                var originGetterMethod = getterProp.GetMethod;
+                var methodReturnType = originGetterMethod.ReturnType;
+
+                // Copy and clear
+                var instructions = new List<Instruction>();
+                foreach (var item in originGetterMethod.Body.Instructions)
+                    instructions.Add(item);
+                originGetterMethod.Body.Instructions.Clear();
+
+                // todo Нужно ли копировать инструкции?
+                var vars = new List<VariableDefinition>();
+                foreach (var item in originGetterMethod.Body.Variables)
+                    vars.Add(item);
+                originGetterMethod.Body.Variables.Clear();
+
+                // field
+                var field = new FieldDefinition($"{originGetterMethod.Name}_FODY_{id}_field", FieldAttributes.Private, methodReturnType);
+                classType.Fields.Add(field);
+
+                // method
+                var methodName = $"{originGetterMethod.Name}_FODY_{id}";
+                var flags = MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName;
+                var newGetterMethod = new MethodDefinition(methodName, flags, methodReturnType);
+
+                foreach (var item in instructions)
+                    newGetterMethod.Body.Instructions.Add(item);
+
+                foreach (var item in vars)
+                    newGetterMethod.Body.Variables.Add(item);
+
+                classType.Methods.Add(newGetterMethod);
+                originGetterMethod.GenerateBody(newGetterMethod, field, null);
             }
         }
     }

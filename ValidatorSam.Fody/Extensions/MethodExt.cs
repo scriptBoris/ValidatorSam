@@ -53,5 +53,43 @@ namespace ValidatorSam.Fody.Extensions
 
             return false;
         }
+
+        public static bool IsMethodGetterValidatorGroup(this MethodDefinition methodDefinition, bool usingDebug = true, int consoleSpacing = 0)
+        {
+            if (methodDefinition == null)
+                return false;
+
+            if (!methodDefinition.HasBody)
+                return false;
+
+            var il = methodDefinition.Body.Instructions.First();
+            if (il.OpCode == OpCodes.Call &&
+                il.Operand is MethodReference methodReference)
+            {
+                if (usingDebug)
+                {
+                    DebugFile.WriteLine($"check is method <{methodDefinition.Name}> getter ValidatorGroup => {methodReference.FullName}", consoleSpacing);
+                    consoleSpacing++;
+                }
+
+                var returnTypeName = methodDefinition.ReturnType.FullName;
+                if (usingDebug)
+                    DebugFile.WriteLine($"return type: {returnTypeName}", consoleSpacing);
+
+                if (methodReference.FullName == ModuleWeaver.METHOD_BUILD_GROUP_NAME)
+                {
+                    if (usingDebug)
+                        DebugFile.WriteLine($"this is getter ValidatorGroup", consoleSpacing);
+                    return true;
+                }
+                else
+                {
+                    if (usingDebug)
+                        DebugFile.WriteLine($"compare string \"{ModuleWeaver.METHOD_BUILD_GROUP_NAME}\" - NO EQUAL", consoleSpacing);
+                }
+            }
+
+            return false;
+        }
     }
 }

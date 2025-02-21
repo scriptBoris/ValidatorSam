@@ -25,6 +25,10 @@ namespace SampleWpf.ViewModels
             .Build()
             .UsingRequired();
 
+        public ValidatorGroup Validators => ValidatorGroup.Build()
+            .Include(Email)
+            .Include(Password);
+
         public ICommand CommandLogin => new Command(() =>
         {
             var validators = Validator.GetAll(this);
