@@ -318,13 +318,13 @@ namespace ValidatorSam
                     ValidationChanged?.Invoke(this, IsValid);
                 }
 
-                OnPropertyChanged(nameof(IsVisualValid));
-
                 if (oldTextError != res.TextError)
                 {
                     TextError = res.TextError;
                     ErrorChanged?.Invoke(this, ValidatorErrorTextArgs.Calc(!res.IsValid, res.TextError));
                 }
+
+                OnPropertyChanged(nameof(IsVisualValid));
             }
 
             if (_isValueDefined && !Equals(old, _value))

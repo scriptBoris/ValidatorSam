@@ -21,7 +21,7 @@
     <ScrollView>
         <VerticalStackLayout Padding="10"
                              MaximumWidthRequest="500">
-            <Image HeightRequest="150"
+            <Image HeightRequest="120"
                    HorizontalOptions="Center"
                    Source="dotnet_bot.png"/>
 

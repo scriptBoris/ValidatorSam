@@ -27,15 +27,18 @@ public class NullableDatePicker : NPicker.DatePicker
 
     private void NullableDatePicker_DateSelected(object? sender, NPicker.DateChangedEventArguments e)
     {
-        if (e.NewDate != null)
+        this.Dispatcher.Dispatch(() =>
         {
-            var d = e.NewDate.Value;
-            Date = new DateTime(d.Year, d.Month, d.Day);
-        }
-        else
-        {
-            Date = null;
-        }
+            if (e.NewDate != null)
+            {
+                var d = e.NewDate.Value;
+                Date = new DateTime(d.Year, d.Month, d.Day);
+            }
+            else
+            {
+                Date = null;
+            }
+        });
     }
 
     public new static readonly BindableProperty DateProperty = BindableProperty.Create(
