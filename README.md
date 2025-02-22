@@ -1,4 +1,5 @@
 ![icon of ValidatorSam.Fody library.](https://github.com/scriptBoris/ValidatorSam/blob/master/Nuget/icon.png)
+
 # ValidatorSam
 [![nuget](https://img.shields.io/nuget/v/ValidatorSam.Fody.svg)](https://www.nuget.org/packages/ValidatorSam.Fody/)
 
@@ -10,6 +11,13 @@ creating an instance in the constructor or anywhere else. Which will reduce rout
 and will increase readability of code.
 
 More info: [How it works?](https://github.com/scriptBoris/ValidatorSam/wiki/How-it-work-with-Fody%3F)
+
+## Video demo
+<div align="center">
+  <video width="300" src="https://private-user-images.githubusercontent.com/29772096/415874389-7e8c8ac3-4cba-49fe-b244-d99f6e910ef2.mp4?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NDAxOTU2MDUsIm5iZiI6MTc0MDE5NTMwNSwicGF0aCI6Ii8yOTc3MjA5Ni80MTU4NzQzODktN2U4YzhhYzMtNGNiYS00OWZlLWIyNDQtZDk5ZjZlOTEwZWYyLm1wND9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNTAyMjIlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUwMjIyVDAzMzUwNVomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTViNjRkMTE5YWYyMmEzODQxZjY4OTllNjY1ODFmYTBmOWQyNjI2M2ZjODIzMWE4MmY5YzI0NzEyNDY2ZjI0ZmYmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.HUCAmEH4DdqLfuCRvLYTaPvXnCXWHFOaVv0ZjFixUfQ" 
+      alt="maui" />
+</div>
+
 
 ## UI recommendations
 If your target type is string, int, long or other numbers types so i'm recommend use RawValue for binding UI<-->Data
