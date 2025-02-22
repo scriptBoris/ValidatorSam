@@ -29,6 +29,9 @@ namespace SampleMaui
 #endif
                 });
 
+            // using explicit localization for ValidatorSam
+            ValidatorSam.Core.ValidatorLocalization.UseLocalization = new ValidatorSam.Localizations.Localization_EN();
+
 #if DEBUG
             builder.Logging.AddDebug();
 #endif

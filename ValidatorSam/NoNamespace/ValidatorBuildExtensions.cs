@@ -82,12 +82,13 @@ namespace ValidatorSam
                     int length = newValueStr.Length;
                     if (length < min)
                     {
-                        // TODO Добавить другие языки
-                        return PreprocessResult.Error($"Минимум {min} символов", newValueStr, null);
+                        string msg = string.Format(ValidatorLocalization.Resolve.StringLengthLess, min);
+                        return PreprocessResult.Error(msg, newValueStr, null);
                     }
                     else if (length > max)
                     {
-                        return PreprocessResult.Error($"Максимум {max} символов", newValueStr.Substring(0, (int)max + 1), null);
+                        string msg = string.Format(ValidatorLocalization.Resolve.StringLengthOver, max);
+                        return PreprocessResult.Error(msg, newValueStr.Substring(0, (int)max + 1), null);
                     }
                 }
 
@@ -144,13 +145,14 @@ namespace ValidatorSam
             {
                 if (nc.CompareTo(min) < 0)
                 {
-                    // TODO Добавить поддержку других языков
-                    return PreprocessResult.Error($"Значение не может быть меньше {min}", min, null);
+                    string msg = string.Format(ValidatorLocalization.Resolve.StringValueLess, min);
+                    return PreprocessResult.Error(msg, min, null);
                 }
 
                 if (nc.CompareTo(max) > 0)
                 {
-                    return PreprocessResult.Error($"Значение не может быть больше {max}", max, null);
+                    string msg = string.Format(ValidatorLocalization.Resolve.StringValueOver, max);
+                    return PreprocessResult.Error(msg, max, null);
                 }
             }
 

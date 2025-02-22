@@ -13,6 +13,7 @@ namespace SampleMaui.ViewModels
     public class RegistrationVm : BaseVm
     {
         public Validator<string> UserName => Validator<string>.Build()
+            .UsingTextLimit(2, 15)
             .UsingRequired();
 
         public Validator<string> Email => Validator<string>.Build()

@@ -223,12 +223,39 @@ namespace ValidatorSam
         }
         #endregion props
 
+        /// <summary>
+        /// Indicate that type T is non nullable struct type
+        /// </summary>
         public abstract bool CanNotBeNull { get; }
+
+        /// <summary>
+        /// Internal
+        /// </summary>
         protected abstract int RuleCount { get; }
+
+        /// <summary>
+        /// Internal
+        /// </summary>
         protected abstract object CreateDefaultValue();
+
+        /// <summary>
+        /// Internal
+        /// </summary>
         protected abstract ValidatorResult ExecuteRule(object? value, int ruleId);
+
+        /// <summary>
+        /// Internal
+        /// </summary>
         protected abstract void ThrowValueChangeListener(object? oldValue, object? newValue);
+
+        /// <summary>
+        /// Internal
+        /// </summary>
         protected abstract bool TryCastValue(object? value, out object? cast);
+
+        /// <summary>
+        /// Internal
+        /// </summary>
         protected abstract object? CastValue(object value);
 
         #region internal methods
@@ -356,7 +383,12 @@ namespace ValidatorSam
                 if (CheckValueIsEmpty(genericValue))
                 {
                     isValid = false;
-                    textError = _requiredText;
+
+                    if (_requiredText == ValidatorBuilder<object>.defaultRequired)
+                        textError = ValidatorLocalization.Resolve.StringRequired;
+                    else
+                        textError = _requiredText;
+
                     goto skip;
                 }
             }

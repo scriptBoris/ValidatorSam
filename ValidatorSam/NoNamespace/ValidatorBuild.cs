@@ -55,7 +55,7 @@ namespace ValidatorSam
             return this;
         }
 
-        private const string defaultRequired = "{DEFAULT}";
+        internal const string defaultRequired = "{DEFAULT}";
 
         /// <summary>
         /// Sets the property IsRequired to true and flag indicating that the property
@@ -96,28 +96,7 @@ namespace ValidatorSam
         /// </param>
         public ValidatorBuilder<T> UsingRequired(string requiredText = defaultRequired)
         {
-            if (requiredText == defaultRequired)
-            {
-                var currentCulture = Thread.CurrentThread.CurrentCulture;
-
-                // TODO Need to add more languages
-                switch (currentCulture.TwoLetterISOLanguageName)
-                {
-                    case "en":
-                        Validator._requiredText = "Required";
-                        break;
-                    case "ru":
-                        Validator._requiredText = "Обязательно";
-                        break;
-                    default:
-                        break;
-                }
-            }
-            else
-            {
-                Validator._requiredText = requiredText;
-            }
-
+            Validator._requiredText = requiredText;
             Validator._isRequired = true;
             return this;
         }
