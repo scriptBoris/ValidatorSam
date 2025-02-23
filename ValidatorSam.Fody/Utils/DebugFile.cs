@@ -8,10 +8,15 @@ namespace ValidatorSam.Fody.Utils
 {
     public static class DebugFile
     {
+        public static bool UseDebugFile = false;
+
         private const string fileName = "post_fody.log";
 
         public static void ClearFile()
         {
+            if (!UseDebugFile)
+                return;
+
             string dir = Environment.CurrentDirectory;
             string path = Path.Combine(dir, fileName);
             if (File.Exists(path))
@@ -20,6 +25,9 @@ namespace ValidatorSam.Fody.Utils
 
         public static void WriteLine(string line, int consoleSpacing = 0)
         {
+            if (!UseDebugFile)
+                return;
+
             string spacing = "  ".Multiple(consoleSpacing);
 
             string text = $"{DateTime.Now:dd.MM.yyyy HH:mm:ss}: {spacing}{line}";
