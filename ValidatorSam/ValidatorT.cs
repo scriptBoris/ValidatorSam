@@ -25,6 +25,7 @@ namespace ValidatorSam
             _canNotBeNull = genericType.IsValueType;
         }
 
+        /// <inheritdoc cref="Validator.Value"/>
         public new T Value
         {
             get
@@ -36,6 +37,7 @@ namespace ValidatorSam
             set => base.Value = value;
         }
 
+        /// <inheritdoc cref="Validator.InitValue"/>
         public new T InitValue
         {
             get
@@ -47,9 +49,15 @@ namespace ValidatorSam
             internal set => base.InitValue = value;
         }
 
+        /// <summary>
+        /// Internal property
+        /// </summary>
         protected override int RuleCount => _rules.Count;
+
+        /// <inheritdoc cref="Validator.CanNotBeNull"/>
         public override bool CanNotBeNull => _canNotBeNull;
 
+        /// <inheritdoc/>
         protected override ValidatorResult ExecuteRule(object? value, int ruleId)
         {
             // Ugly construction :Q
@@ -76,6 +84,7 @@ namespace ValidatorSam
             return new ValidatorResult(isValid, error, Name);
         }
 
+        /// <inheritdoc/>
         protected override void ThrowValueChangeListener(object? oldValue, object? newValue)
         {
             if (oldValue is T tOld) { }
@@ -94,12 +103,14 @@ namespace ValidatorSam
             }
         }
 
+        /// <inheritdoc/>
         protected override object CreateDefaultValue()
         {
             var res = default(T);
             return res!;
         }
 
+        /// <inheritdoc/>
         protected override object? CastValue(object? value)
         {
             if (value is T t)
@@ -107,6 +118,7 @@ namespace ValidatorSam
             return default;
         }
 
+        /// <inheritdoc/>
         protected override bool TryCastValue(object? value, out object? cast)
         {
             if (value == null || value == default)
@@ -126,9 +138,7 @@ namespace ValidatorSam
             }
         }
 
-        /// <summary>
-        /// The rat's method of setting a value. Use it very carefully
-        /// </summary>
+        /// <inheritdoc cref="Validator.SetValueAsRat(object?, RatModes)"/>
         public void SetValueAsRat(T value, RatModes mode)
         {
             base.SetValueAsRat(value, mode);
@@ -143,6 +153,9 @@ namespace ValidatorSam
             base.SetValueAsRat(value, mode);
         }
 
+        /// <summary>
+        /// Default implicit operator
+        /// </summary>
         public static implicit operator T(Validator<T> v)
         {
             return v.Value;
