@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using ValidatorSam.Core;
+using ValidatorSam.Internal;
 
 #nullable enable
 namespace ValidatorSam
@@ -32,6 +33,7 @@ namespace ValidatorSam
     {
         internal readonly List<PreprocessorHandler> _preprocess = new List<PreprocessorHandler>();
         internal PreprocessorHandler? _defaultCast;
+        internal ISourceRequired? _required;
 
         private bool _isValueDefined;
         private object? _value;
@@ -39,8 +41,6 @@ namespace ValidatorSam
         internal bool _isEnabled = true;
         private string? _textError;
         private bool _isValid;
-        internal string? _requiredText;
-        internal bool _isRequired;
         internal string? _customName;
         private string _name = "undefined";
         internal bool _isGenericStringType;
@@ -145,15 +145,7 @@ namespace ValidatorSam
         /// <summary>
         /// Indicates that any data must be entered (not null, not empty string, not white spaces)
         /// </summary>
-        public bool IsRequired
-        {
-            get => _isRequired;
-            internal set
-            {
-                _isRequired = value;
-                OnPropertyChanged(nameof(IsRequired));
-            }
-        }
+        public bool IsRequired => _required != null;
 
         /// <summary>
         /// Validation flag 
@@ -383,11 +375,12 @@ namespace ValidatorSam
                 if (CheckValueIsEmpty(genericValue))
                 {
                     isValid = false;
+                    string requiredText = _required!.GetRequiredError();
 
-                    if (_requiredText == ValidatorBuilder<object>.defaultRequired)
+                    if (requiredText == ValidatorBuilder<object>.defaultRequired)
                         textError = ValidatorLocalization.Resolve.StringRequired;
                     else
-                        textError = _requiredText;
+                        textError = requiredText;
 
                     goto skip;
                 }

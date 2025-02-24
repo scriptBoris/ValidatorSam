@@ -1,14 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading;
-using ValidatorSam.Core;
 using ValidatorSam.Internal;
 
 #nullable enable
@@ -19,9 +9,15 @@ namespace ValidatorSam
     /// </summary>
     public class ValidatorBuilder<T>
     {
+        internal const string defaultRequired = "{DEFAULT}";
+
         internal readonly Validator<T> Validator = new Validator<T>();
         internal T usingValue;
 
+        /// <summary>
+        /// Internal ctor.
+        /// For using Builder with non-Fody way, use <see cref="Validator{T}.BuildManual"/>
+        /// </summary>
         internal ValidatorBuilder()
         {
             var genericType = typeof(T);
@@ -55,49 +51,53 @@ namespace ValidatorSam
             return this;
         }
 
-        internal const string defaultRequired = "{DEFAULT}";
+        /// <inheritdoc cref="UsingRule(Func{T, bool}, string)"/>
+        /// <param name="rule"></param>
+        /// <param name="getError">dynamic function to get error text</param>
+        public ValidatorBuilder<T> UsingRule(Func<T, bool> rule, Func<string> getError)
+        {
+            Validator._rules.Add(new DynamicRuleItem<T>
+            {
+                DelegateGetError = getError,
+                Delegate = rule,
+            });
+            return this;
+        }
 
         /// <summary>
-        /// Sets the property IsRequired to true and flag indicating that the property
-        /// Value must not be empty. If this validator contains empty value then property 
-        /// IsValid will set as false
-        /// <br/>
-        /// ---
-        /// <br/>
-        /// For validating types:
-        /// <list type="bullet">
-        /// <item>
-        ///     <term>strings</term>
-        ///     <description>
-        ///         <c>null</c> or <c>""</c> or white space string is will be considered as empty values
-        ///     </description>
-        /// </item>
-        /// <item>
-        ///     <term>numbers</term>
-        ///     <description>
-        ///         Since types like int32, int64, etc., are struct types and do not support null values, 
-        ///         the validator system determines an empty state using the RawValue property. It is 
-        ///         assumed that you (the developer) use bindings UI input field to this RawValue 
-        ///         property. If so, when RawValue contains null, an empty string, or a string consisting 
-        ///         of only whitespace, it will be considered an empty value.
-        ///     </description>
-        /// </item>
-        /// <item>
-        ///     <term>other types</term>
-        ///     <description>
-        ///         <c>null</c> will be considered as empty values
-        ///     </description>
-        /// </item>
-        /// </list>
+        /// Sets the <see cref="Validator.IsRequired"/> property to <c>true</c>, indicating that 
+        /// <see cref="Validator.Value"/> must not be empty. If this validator contains an empty 
+        /// value, the <see cref="Validator.IsValid"/> property will be set to <c>false</c>.
+        /// <br/><br/>
+        /// <b>Empty values are determined based on the following rules:</b>
         /// </summary>
+        /// <remarks>
+        /// <para><b>Strings:</b> A value is considered empty if it is <c>null</c>, an 
+        /// empty string (<c>""</c>), or consists only of whitespace.</para>
+        ///
+        /// <para><b>Numbers:</b> Since numeric types (e.g., <see cref="int"/>, 
+        /// <see cref="long"/>) are structs and cannot be <c>null</c>, the validator 
+        /// determines an empty state using the <see cref="Validator.RawValue"/> property. If 
+        /// <see cref="Validator.RawValue"/> is <c>null</c>, an empty string, or a string 
+        /// containing only whitespace, it is considered empty.</para>
+        ///
+        /// <para><b>Other types:</b> A value is considered empty if it is <c>null</c>.</para>
+        /// </remarks>
         /// <param name="requiredText">
-        /// Error message. If used as default then system automaticly setted 
-        /// error message based by Thread.CurrentThread.CurrentCulture property
+        /// Custom error message. If omitted, a default error message is automatically 
+        /// assigned based on the <see cref="System.Threading.Thread.CurrentCulture"/> setting.
         /// </param>
         public ValidatorBuilder<T> UsingRequired(string requiredText = defaultRequired)
         {
-            Validator._requiredText = requiredText;
-            Validator._isRequired = true;
+            Validator._required = new StaticRequired(requiredText);
+            return this;
+        }
+
+        /// <inheritdoc cref="UsingRequired(string)"/>
+        /// <param name="getError">dynamic function to get error text</param>
+        public ValidatorBuilder<T> UsingRequired(Func<string> getError)
+        {
+            Validator._required = new DynamicRequired(getError);
             return this;
         }
 

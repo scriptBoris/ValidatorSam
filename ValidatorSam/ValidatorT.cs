@@ -14,7 +14,7 @@ namespace ValidatorSam
     /// <typeparam name="T">The type that will appear in checks and preprocessors</typeparam>
     public class Validator<T> : Validator
     {
-        internal readonly List<RuleItem<T>> _rules = new List<RuleItem<T>>();
+        internal readonly List<IRuleItem<T>> _rules = new List<IRuleItem<T>>();
         internal readonly List<Action<ValidatorValueChangedArgs<T>>> _changeListeners = new List<Action<ValidatorValueChangedArgs<T>>>();
         private readonly bool _canNotBeNull;
 
@@ -80,7 +80,7 @@ namespace ValidatorSam
                 // If programmer dont catch null, then rule-delegate can throw NullRefException
                 isValid = rule.Delegate.Invoke(t!);
 
-            string? error = !isValid ? rule.ErrorText : null;
+            string? error = !isValid ? rule.GetError() : null;
             return new ValidatorResult(isValid, error, Name);
         }
 

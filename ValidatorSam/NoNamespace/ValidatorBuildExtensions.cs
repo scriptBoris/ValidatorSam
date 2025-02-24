@@ -9,6 +9,9 @@ using ValidatorSam.Internal;
 #nullable enable
 namespace ValidatorSam
 {
+    /// <summary>
+    /// Special extension methods for ValidatorBuild
+    /// </summary>
     public static class ValidatorBuildExtensions
     {
         /// <summary>
@@ -28,7 +31,20 @@ namespace ValidatorSam
             {
                 IsSafeRule = true,
                 ErrorText = error,
-                Delegate = (x) => rule(x.Value),
+                Delegate = (x) => rule(x!.Value),
+            });
+            return self;
+        }
+
+        /// <inheritdoc cref="UsingSafeRule{T}(ValidatorBuilder{T?}, Func{T, bool}, string)"/>
+        public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilder<T?> self, Func<T, bool> rule, Func<string> getError)
+            where T : struct
+        {
+            self.Validator._rules.Add(new DynamicRuleItem<T?>
+            {
+                IsSafeRule = true,
+                DelegateGetError = getError,
+                Delegate = (x) => rule(x!.Value),
             });
             return self;
         }
@@ -50,7 +66,20 @@ namespace ValidatorSam
             {
                 IsSafeRule = true,
                 ErrorText = error,
-                Delegate = (x) => rule(x),
+                Delegate = (x) => rule(x!),
+            });
+            return self;
+        }
+
+        /// <inheritdoc cref="UsingSafeRule{T}(ValidatorBuilder{T?}, Func{T, bool}, string)"/>
+        public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilder<T?> self, Func<T, bool> rule, Func<string> getError)
+            where T : class
+        {
+            self.Validator._rules.Add(new DynamicRuleItem<T?>
+            {
+                IsSafeRule = true,
+                DelegateGetError = getError,
+                Delegate = (x) => rule(x!),
             });
             return self;
         }
