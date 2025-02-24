@@ -505,9 +505,11 @@ namespace ValidatorSam
         /// </summary>
         public void SetError(string textError)
         {
+            unlockVisualValid = true;
             IsValid = false;
             TextError = textError;
             ErrorChanged?.Invoke(this, ValidatorErrorTextArgs.Calc(true, textError));
+            OnPropertyChanged(nameof(IsVisualValid));
         }
 
         /// <summary>
