@@ -35,9 +35,8 @@ namespace ValidatorSam
         internal PreprocessorHandler? _defaultCast;
         internal ISourceRequired? _required;
 
-        private bool _isValueDefined;
-        private object? _value;
-        private string? _rawValue;
+        internal object? _value;
+        internal string? _rawValue;
         internal bool _isEnabled = true;
         private string? _textError;
         private bool _isValid;
@@ -259,32 +258,11 @@ namespace ValidatorSam
             bool forceUpdateRaw = false;
             if (usePreprocessors)
             {
-                var args = new ValidatorPreprocessArgs
-                {
-                    NewValue = newValue,
-                    OldValue = old,
-                };
-                foreach (var preprocessor in _preprocess)
-                {
-                    var pres = preprocessor(args);
-                    switch (pres.ResultType)
-                    {
-                        case PreprocessResultType.Success:
-                            newRaw = pres.RawResult;
-                            newValue = pres.ValueResult;
-                            break;
-                        case PreprocessResultType.Error:
-                            prepError = new ValidatorResult(false, pres.ErrorText, Name);
-                            newRaw = pres.RawResult;
-                            newValue = pres.ValueResult;
-                            forceUpdateRaw = true;
-                            break;
-                        case PreprocessResultType.Ignore:
-                            continue;
-                        default:
-                            throw new NotImplementedException();
-                    }
-                }
+                var hrw = HandleRaw(old, newest);
+                prepError = hrw.prepError;
+                newRaw = hrw.newRaw;
+                newValue = hrw.newValue;
+                forceUpdateRaw = hrw.forceUpdateRaw;
             }
 
             _value = newValue;
@@ -319,7 +297,7 @@ namespace ValidatorSam
                 OnPropertyChanged(nameof(IsVisualValid));
             }
 
-            if (_isValueDefined && !Equals(old, _value))
+            if (!Equals(old, _value))
             {
                 ValueChanged?.Invoke(this, new ValidatorValueChangedArgs(old, _value));
                 ThrowValueChangeListener(old, _value);
@@ -328,8 +306,45 @@ namespace ValidatorSam
 
             if (updateRaw)
                 OnPropertyChanged(nameof(RawValue));
+        }
 
-            _isValueDefined = true;
+        internal (ValidatorResult? prepError,
+            string? newRaw,
+            object? newValue,
+            bool forceUpdateRaw) 
+            HandleRaw(object? old, object? newest)
+        {
+            ValidatorResult? prepError = null;
+            string? newRaw = null;
+            object? newValue = newest;
+            bool forceUpdateRaw = false;
+            var args = new ValidatorPreprocessArgs
+            {
+                NewValue = newest,
+                OldValue = old,
+            };
+            foreach (var preprocessor in _preprocess)
+            {
+                var pres = preprocessor(args);
+                switch (pres.ResultType)
+                {
+                    case PreprocessResultType.Success:
+                        newRaw = pres.RawResult;
+                        newValue = pres.ValueResult;
+                        break;
+                    case PreprocessResultType.Error:
+                        prepError = new ValidatorResult(false, pres.ErrorText, Name);
+                        newRaw = pres.RawResult;
+                        newValue = pres.ValueResult;
+                        forceUpdateRaw = true;
+                        break;
+                    case PreprocessResultType.Ignore:
+                        continue;
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+            return (prepError, newRaw, newValue, forceUpdateRaw);
         }
 
         private bool RawCastValue(string? old, string? newest, out object? result, out string? raw)

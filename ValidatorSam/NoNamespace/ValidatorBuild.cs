@@ -12,7 +12,6 @@ namespace ValidatorSam
         internal const string defaultRequired = "{DEFAULT}";
 
         internal readonly Validator<T> Validator = new Validator<T>();
-        internal T usingValue;
 
         /// <summary>
         /// Internal ctor.
@@ -123,7 +122,7 @@ namespace ValidatorSam
         /// <param name="value">initial value</param>
         public ValidatorBuilder<T> UsingValue(T value)
         {
-            usingValue = value;
+            Validator.InitValue = value;
             return this;
         }
 
@@ -213,23 +212,12 @@ namespace ValidatorSam
 
         public static implicit operator Validator<T>(ValidatorBuilder<T> builder)
         {
-            if (builder.usingValue != null)
-            {
-                builder
-                    .Validator
-                    .SetValueAsRat(
-                        builder.usingValue,
-                        RatModes.Default | RatModes.InitValue | RatModes.SkipValidation | RatModes.SkipPreprocessors);
-            }
-            else if (builder.Validator.CanNotBeNull)
-            {
-                builder
-                    .Validator
-                    .SetValueAsRat(
-                        default(T),
-                        RatModes.Default | RatModes.InitValue | RatModes.SkipValidation);
+            object? initValue = builder.Validator.InitValue;
+            var hrw = builder.Validator.HandleRaw(null, initValue);
 
-            }
+            builder.Validator._value = initValue;
+            builder.Validator._rawValue = hrw.newRaw;
+
 
             return builder.Validator;
         }

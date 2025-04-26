@@ -14,6 +14,8 @@ namespace ValidatorTests
     {
         private MockObject _initObject = new();
         private bool _valueChanged;
+        private bool _valueChanged_2;
+        private bool _valueChanged_3;
 
         public Validator<UserRoles> UserRole => Validator<UserRoles>.Build()
             .UsingValue(UserRoles.Admin)
@@ -30,6 +32,20 @@ namespace ValidatorTests
         {
             UserRole.Value = UserRoles.Admin;
             Assert.AreEqual(false, _valueChanged);
+        }
+
+        // проверка что данные НЕ были изменены, т.к. указывается те же данные,
+        // что уже используются в самом валидаторе
+        // (Вариант с событием)
+        [TestMethod]
+        public void CheckWillNotChanged_Event()
+        {
+            UserRole.ValueChanged += (o, e) =>
+            {
+                _valueChanged_2 = true;
+            };
+            UserRole.Value = UserRoles.Admin;
+            Assert.AreEqual(false, _valueChanged_2);
         }
 
         // проверка что данные были изменены, т.к. указывается другие данные,
@@ -53,6 +69,9 @@ namespace ValidatorTests
 
         public Validator<MockObject> MockObjectProperty2 => Validator<MockObject>.Build()
             .UsingValue(_initObject);
+
+        public Validator<MockObject> MockObjectProperty3 => Validator<MockObject>.Build()
+            .UsingRequired();
 
         public Validator<string> StringProperty => Validator<string>.Build()
             .UsingValue("init value");
@@ -103,6 +122,24 @@ namespace ValidatorTests
             StringProperty3.Value = "init value";
             bool isStringChanged3 = StringProperty3.CheckChanges();
             Assert.AreEqual(false, isStringChanged3);
+        }
+
+        [TestMethod]
+        public void CheckCaseSilentValueChanged()
+        {
+            // контрольная проверка экземпляра класса
+            // (мой кейс, когда изначально "пустое" проперти сетапило значение из загруженных
+            // данных из сервера, но при сетапе событие не инвокалось)
+            MockObjectProperty3.ValueChanged += MockObjectProperty3_ValueChanged;
+            MockObjectProperty3.Value = new MockObject();
+            bool isMockObjectChanged3 = MockObjectProperty3.CheckChanges();
+            Assert.AreEqual(true, isMockObjectChanged3);
+            Assert.AreEqual(true, _valueChanged_3);
+        }
+
+        private void MockObjectProperty3_ValueChanged(Validator invoker, ValidatorValueChangedArgs args)
+        {
+            _valueChanged_3 = true;
         }
     }
 }

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using System.Threading;
 using ValidatorSam.Localizations;
@@ -16,7 +18,13 @@ namespace ValidatorSam.Core
     /// </summary>
     public abstract class ValidatorLocalization
     {
+        private static readonly Dictionary<string, ValidatorLocalization> _cache = new Dictionary<string, ValidatorLocalization>();
         private static ValidatorLocalization? ResolvedLocalization;
+
+        /// <summary>
+        /// Exclicit culture info
+        /// </summary>
+        public static CultureInfo? CultureInfo { get; set; }
 
         /// <summary>
         /// Set this property for using explicit localization texts
@@ -29,10 +37,15 @@ namespace ValidatorSam.Core
             {
                 if (UseLocalization != null)
                     return UseLocalization;
+                
+                var currentCulture = CultureInfo ?? CultureInfo.CurrentCulture;
 
-                if (ResolvedLocalization == null)
+                if (_cache.TryGetValue(currentCulture.TwoLetterISOLanguageName, out var match))
                 {
-                    var currentCulture = Thread.CurrentThread.CurrentCulture;
+                    ResolvedLocalization = match;
+                }
+                else
+                {
                     switch (currentCulture.TwoLetterISOLanguageName)
                     {
                         case "ru":
@@ -43,9 +56,9 @@ namespace ValidatorSam.Core
                             ResolvedLocalization = new Localization_EN();
                             break;
                     }
+                    _cache.Add(currentCulture.TwoLetterISOLanguageName, ResolvedLocalization);
                 }
                 return ResolvedLocalization;
-
             } 
         }
 
