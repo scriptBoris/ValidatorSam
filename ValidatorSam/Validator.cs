@@ -381,13 +381,14 @@ namespace ValidatorSam
         {
             bool isValid = true;
             string? textError = null;
+            bool isEmpty = CheckValueIsEmpty(genericValue);
 
             if (!IsEnabled)
                 goto skip;
 
             if (IsRequired)
             {
-                if (CheckValueIsEmpty(genericValue))
+                if (isEmpty)
                 {
                     isValid = false;
                     string requiredText = _required!.GetRequiredError();
@@ -401,7 +402,7 @@ namespace ValidatorSam
                 }
             }
 
-            if (usePreprocessors)
+            if (usePreprocessors && !isEmpty)
             {
                 foreach (var item in _preprocess)
                 {

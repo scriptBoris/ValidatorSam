@@ -66,5 +66,29 @@ namespace ValidatorTests
             EmailDynamicSafe.Value = "bad@email.com";
             Assert.AreEqual("dynamic error", EmailDynamicSafe.TextError);
         }
+
+        // Если данные отсутствуют, то препроцессор не должен выдавать ошибку
+        public Validator<string> UserAddress => Validator<string>.Build()
+            .UsingTextLimit(5, 100);
+        [TestMethod]
+        public void TestEmptyTextWithLimitation()
+        {
+            UserAddress.Value = "";
+            UserAddress.CheckValid();
+            Assert.AreEqual(true, UserAddress.IsValid);
+        }
+
+        // Если данные отсутствуют, то препроцессор не должен выдавать ошибку
+        // Но флаг Required должен выдать ошибку
+        public Validator<string> UserAddressRequired => Validator<string>.Build()
+            .UsingTextLimit(5, 100)
+            .UsingRequired();
+        [TestMethod]
+        public void TestEmptyTextWithLimitation_Required()
+        {
+            UserAddressRequired.Value = "";
+            UserAddressRequired.CheckValid();
+            Assert.AreEqual(false, UserAddressRequired.IsValid);
+        }
     }
 }
