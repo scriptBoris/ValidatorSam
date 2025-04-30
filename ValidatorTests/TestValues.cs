@@ -67,5 +67,24 @@ namespace ValidatorTests
             LastName.Value = "A";
             Assert.AreEqual(false, LastName.IsValid, $"\n{LastName.TextError}");
         }
+
+        // Nullable DateTime должен быть пустой
+        public Validator<DateTime?> UserBirthday => Validator<DateTime?>.Build();
+
+        [TestMethod]
+        public void TestNullableDateTimeEmpty()
+        {
+            Assert.AreEqual(false, UserBirthday.HasValue);
+        }
+
+        // Nullable DateTime должен быть пустой (вариант с required)
+        public Validator<DateTime?> UserBirthday2 => Validator<DateTime?>.Build()
+            .UsingRequired();
+
+        [TestMethod]
+        public void TestNullableDateTimeEmpty2()
+        {
+            Assert.AreEqual(false, UserBirthday2.HasValue);
+        }
     }
 }

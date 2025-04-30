@@ -108,6 +108,9 @@ namespace ValidatorSam
 
                 if (x.NewValue is string newValueStr)
                 {
+                    if (newValueStr == "")
+                        return PreprocessResult.Ignore();
+
                     int length = newValueStr.Length;
                     if (length < min)
                     {

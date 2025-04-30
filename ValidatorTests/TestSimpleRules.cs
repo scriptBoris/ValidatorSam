@@ -79,6 +79,18 @@ namespace ValidatorTests
         }
 
         // Если данные отсутствуют, то препроцессор не должен выдавать ошибку
+        public Validator<string> UserAddress2 => Validator<string>.Build()
+            .UsingTextLimit(5, 100);
+        [TestMethod]
+        public void TestEmptyTextWithLimitation2()
+        {
+            UserAddress2.Value = "2";
+            UserAddress2.Value = "";
+            //UserAddress2.CheckValid();
+            Assert.AreEqual(true, UserAddress2.IsValid);
+        }
+
+        // Если данные отсутствуют, то препроцессор не должен выдавать ошибку
         // Но флаг Required должен выдать ошибку
         public Validator<string> UserAddressRequired => Validator<string>.Build()
             .UsingTextLimit(5, 100)
