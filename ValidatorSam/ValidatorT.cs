@@ -4,6 +4,10 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using ValidatorSam.Internal;
+using ValidatorSam.Core;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Security.Cryptography;
 
 #nullable enable
 namespace ValidatorSam
@@ -16,7 +20,14 @@ namespace ValidatorSam
     {
         internal readonly List<IRuleItem<T>> _rules = new List<IRuleItem<T>>();
         internal readonly List<Action<ValidatorValueChangedArgs<T>>> _changeListeners = new List<Action<ValidatorValueChangedArgs<T>>>();
+        internal readonly List<PreprocessorHandler<T>> _preprocess = new List<PreprocessorHandler<T>>();
         private readonly bool _canNotBeNull;
+
+        internal IValueRawConverter<T>? _defaultCastConverter;
+
+        [AllowNull]
+        internal T _value;
+        internal string? _rawValue;
 
         internal Validator()
         {
@@ -28,13 +39,15 @@ namespace ValidatorSam
         /// <inheritdoc cref="Validator.Value"/>
         public new T Value
         {
-            get
-            {
-                if (base.Value is T t)
-                    return t;
-                return default!;
-            }
-            set => base.Value = value;
+            get => _value;
+            set => SetValue(_value, value, true, true, true);
+        }
+
+        /// <inheritdoc cref="Validator.RawValue"/>
+        public override string? RawValue
+        {
+            get => GetRawValue();
+            set => SetRawValue(value);
         }
 
         /// <inheritdoc cref="Validator.InitValue"/>
@@ -58,7 +71,93 @@ namespace ValidatorSam
         public override bool CanNotBeNull => _canNotBeNull;
 
         /// <inheritdoc/>
-        protected override ValidatorResult ExecuteRule(object? value, int ruleId)
+        public override bool HasValue => !CheckValueIsEmpty(Value);
+
+        /// <inheritdoc/>
+        protected override object? GenericGetValue()
+        {
+            return _value;
+        }
+
+        /// <inheritdoc/>
+        protected override void GenericSetValue(object? value)
+        {
+            SetValue(_value, value, true, true, true);
+        }
+
+        /// <inheritdoc/>
+        private string? GetRawValue()
+        {
+            if (_rawValue != null)
+            {
+                return _rawValue;
+            }
+
+            if (_value != null)
+            {
+                if (_value is IFormattable fvalue && _stringFormat != null)
+                {
+                    return fvalue.ToString(_stringFormat, CultureInfo.InvariantCulture);
+                }
+                else
+                {
+                    return _value.ToString();
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Устанавливает RawValue (_rawValue)
+        /// </summary>
+        private void SetRawValue(string? value)
+        {
+            if (_rawValue == value)
+                return;
+
+            string? input = value;
+
+            if (TryConvertRawToValue(_rawValue, value, out var result, out var raw))
+            {
+                bool notEqualValues = !Equals(_value, result);
+                bool notEqualRawValues = !Equals(_rawValue, input);
+                
+                _rawValue = raw;
+
+                if (notEqualValues || notEqualRawValues)
+                    SetValue(_value, result, false, true, true);
+
+                if (notEqualRawValues)
+                    OnPropertyChanged(nameof(RawValue));
+            }
+        }
+
+        /// <summary>
+        /// Check value is empty or not
+        /// </summary>
+        protected bool CheckValueIsEmpty([AllowNull]T genericValue)
+        {
+            bool isEmpty;
+
+            switch (genericValue)
+            {
+                case string vstring:
+                    isEmpty = string.IsNullOrWhiteSpace(vstring);
+                    break;
+                case bool vbool:
+                    isEmpty = !vbool;
+                    break;
+                default:
+                    isEmpty = genericValue == null;
+                    break;
+            }
+
+            return isEmpty;
+        }
+
+        /// <inheritdoc/>
+        protected ValidatorResult ExecuteRule([AllowNull]T value, int ruleId)
         {
             // Ugly construction :Q
             // Compatability NET2.1
@@ -85,7 +184,7 @@ namespace ValidatorSam
         }
 
         /// <inheritdoc/>
-        protected override void ThrowValueChangeListener(object? oldValue, object? newValue)
+        protected void ThrowValueChangeListener([AllowNull]T oldValue, [AllowNull]T newValue)
         {
             if (oldValue is T tOld) { }
             else { 
@@ -97,45 +196,251 @@ namespace ValidatorSam
                 tNew = default(T);
             }
 
+            var args = new ValidatorValueChangedArgs<T>(tOld, tNew);
             foreach (var item in _changeListeners)
             {
-                item.Invoke(new ValidatorValueChangedArgs<T>(tOld!, tNew!));
+                item.Invoke(args);
             }
         }
 
         /// <inheritdoc/>
-        protected override object CreateDefaultValue()
+        protected override void SetValue(object? old, object? newest, bool updateRaw, bool useValidations, bool usePreprocessors)
         {
-            var res = default(T);
-            return res!;
+            T oldValue;
+            if (old is T castOld)
+                oldValue = castOld;
+            else
+                oldValue = default;
+
+            T newValue;
+            if (newest is T castNew)
+                newValue = castNew;
+            else
+                newValue = default;
+
+            SetValue(oldValue, newValue, updateRaw, useValidations, usePreprocessors);
         }
 
-        /// <inheritdoc/>
-        protected override object? CastValue(object? value)
+        /// <inheritdoc cref="Validator.SetValue"/>
+        private void SetValue([AllowNull]T old, [AllowNull]T newest, bool updateRaw, bool useValidations, bool usePreprocessors)
         {
-            if (value is T t)
-                return t;
-            return default;
-        }
-
-        /// <inheritdoc/>
-        protected override bool TryCastValue(object? value, out object? cast)
-        {
-            if (value == null || value == default)
+            ValidatorResult? prepError = null;
+            string? newRaw = null;
+            T newValue = newest;
+            bool forceUpdateRaw = false;
+            if (usePreprocessors)
             {
-                cast = default(T);
-                return false;
+                var hrw = HandleRaw(old, newest);
+                prepError = hrw.PrepError;
+                newRaw = hrw.NewRaw;
+                newValue = hrw.NewValue;
+                forceUpdateRaw = hrw.ForceUpdateRaw;
             }
 
-            if (value is T t)
+            _value = newValue;
+
+            if (updateRaw || forceUpdateRaw)
+                _rawValue = newRaw;
+
+            if (useValidations)
             {
-                cast = t;
-                return true;
+                ValidatorResult res;
+                if (prepError != null)
+                    res = prepError.Value;
+                else
+                    res = InternalCheckValid(_value, true, false);
+
+                bool oldValid = IsValid;
+                string? oldTextError = TextError;
+
+                unlockVisualValid = true;
+                if (oldValid != res.IsValid)
+                {
+                    IsValid = res.IsValid;
+                    InvokeValidationChanged(this, IsValid);
+                }
+
+                if (oldTextError != res.TextError)
+                {
+                    TextError = res.TextError;
+                    InvokeErrorChanged(this, ValidatorErrorTextArgs.Calc(!res.IsValid, res.TextError));
+                }
+
+                OnPropertyChanged(nameof(IsVisualValid));
+            }
+
+            if (!Equals(old, _value))
+            {
+                InvokeValueChanged(this, new ValidatorValueChangedArgs(old, _value));
+                ThrowValueChangeListener(old, _value);
+                OnPropertyChanged(nameof(Value));
+            }
+
+            if (updateRaw)
+                OnPropertyChanged(nameof(RawValue));
+        }
+
+        /// <summary>
+        /// Преобразует value => raw value с учетом препроцессоров
+        /// </summary>
+        private HandleRawResult<T> HandleRaw([AllowNull]T old, [AllowNull]T newest)
+        {
+            ValidatorResult? prepError = null;
+            string? newRaw = null;
+            T newValue = newest;
+            bool forceUpdateRaw = false;
+            var args = new ValidatorPreprocessArgs<T>
+            {
+                Validator = this,
+                NewValue = newest,
+                OldValue = old,
+            };
+            foreach (var preprocessor in _preprocess)
+            {
+                var pres = preprocessor(args);
+                switch (pres.ResultType)
+                {
+                    case PreprocessResultType.Success:
+                        newRaw = pres.RawResult;
+                        newValue = pres.ValueResult;
+                        break;
+                    case PreprocessResultType.Error:
+                        prepError = new ValidatorResult(false, pres.ErrorText, Name);
+                        newRaw = pres.RawResult;
+                        newValue = pres.ValueResult;
+                        forceUpdateRaw = true;
+                        break;
+                    case PreprocessResultType.Ignore:
+                        continue;
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+
+            return new HandleRawResult<T>
+            {
+                PrepError = prepError,
+                NewRaw = newRaw,
+                NewValue = newValue,
+                ForceUpdateRaw = forceUpdateRaw,
+            };
+        }
+
+        private ValidatorResult InternalCheckValid([AllowNull]T genericValue, bool useValidation, bool usePreprocessors)
+        {
+            bool isValid = true;
+            string? textError = null;
+            bool isEmpty = CheckValueIsEmpty(genericValue);
+
+            if (!IsEnabled)
+                goto skip;
+
+            if (IsRequired)
+            {
+                if (isEmpty)
+                {
+                    isValid = false;
+                    string requiredText = _required!.GetRequiredError();
+
+                    if (requiredText == ValidatorBuilder<object>.defaultRequired)
+                        textError = ValidatorLocalization.Resolve.StringRequired;
+                    else
+                        textError = requiredText;
+
+                    goto skip;
+                }
+            }
+
+            if (usePreprocessors && !isEmpty)
+            {
+                foreach (var item in _preprocess)
+                {
+                    var res = item(new ValidatorPreprocessArgs<T>
+                    {
+                        OldValue = _value,
+                        NewValue = genericValue,
+                    });
+
+                    if (res.ResultType == PreprocessResultType.Error)
+                        return new ValidatorResult(false, res.ErrorText, Name);
+                }
+            }
+
+            if (useValidation)
+            {
+                for (int i = 0; i < RuleCount; i++)
+                {
+                    var ruleResult = ExecuteRule(genericValue, i);
+                    if (!ruleResult.IsValid)
+                    {
+                        isValid = false;
+                        textError = ruleResult.TextError;
+                        break;
+                    }
+                }
+            }
+
+        skip:
+            return new ValidatorResult(isValid, textError, Name);
+        }
+
+        /// <summary>
+        /// Преобразует Value в текстовое представление для RawValue
+        /// (например для цифр, int, double и т.д.)
+        /// </summary>
+        internal HandleRawResult<T> HandleRawDefault([AllowNull]T old, [AllowNull]T newest)
+        {
+            ValidatorResult? prepError = null;
+            string? newRaw = null;
+            T newValue = default;
+
+            bool forceUpdateRaw = false;
+            var converter = _defaultCastConverter;
+            if (converter != null)
+            {
+                var result = converter.ValueToRaw(newest, old, this);
+                switch (result.ResultType)
+                {
+                    case ConverterResultType.Success:
+                        newRaw = result.RawResult;
+                        newValue = result.Result;
+                        break;
+                    case ConverterResultType.Error:
+                        prepError = new ValidatorResult(false, result.ErrorText, Name);
+                        newRaw = result.RawResult;
+                        newValue = result.Result;
+                        forceUpdateRaw = true;
+                        break;
+                    case ConverterResultType.Skip:
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
             }
             else
             {
-                throw new InvalidOperationException("Please use Binding \"RawValue\" instead of \"Value\"");
+                newRaw = newest?.ToString();
+                newValue = newest;
             }
+
+            return new HandleRawResult<T>
+            {
+                PrepError = prepError,
+                NewRaw = newRaw,
+                NewValue = newValue,
+                ForceUpdateRaw = forceUpdateRaw,
+            };
+        }
+
+        internal override ValidatorResult InternalCheckValid(object? genericValue, bool useValidation, bool usePreprocessors)
+        {
+            T value;
+            if (genericValue is T castOld)
+                value = castOld;
+            else
+                value = default;
+
+            return InternalCheckValid(value, useValidation, usePreprocessors);
         }
 
         /// <inheritdoc cref="Validator.SetValueAsRat(object?, RatModes)"/>
@@ -175,6 +480,44 @@ namespace ValidatorSam
         public static ValidatorBuilder<T> BuildManual(string propName = "NONE")
         {
             return ValidatorBuilder<T>.Build(propName);
+        }
+
+        /// <summary>
+        /// Пытается парсить rawValue (пользовательский ввод) в Generic Type (T)
+        /// </summary>
+        private bool TryConvertRawToValue(string? oldRaw, string? newRaw, [AllowNull]out T result, out string? raw)
+        {
+            if (_defaultCastConverter != null)
+            {
+                var castResult = _defaultCastConverter.RawToValue(newRaw ?? "", oldRaw ?? "", _value, this);
+                if (castResult.ResultType == ConverterResultType.Success)
+                {
+                    raw = castResult.RawResult;
+                    result = castResult.Result;
+                    return true;
+                }
+                else
+                {
+                    raw = newRaw;
+                    result = default!;
+                    return false;
+                }
+            }
+            else
+            {
+                raw = newRaw;
+
+                if (newRaw is T t)
+                {
+                    result = t;
+                }
+                else
+                {
+                    result = default!;
+                }
+
+                return true;
+            }
         }
     }
 }

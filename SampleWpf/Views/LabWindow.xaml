@@ -6,10 +6,10 @@
         xmlns:viewmodels="clr-namespace:SampleWpf.ViewModels"
         x:Class="SampleWpf.Views.LabWindow"
         Title="LabWindow"
-        Width="300"
-        Height="400"
         d:Background="White"
         d:DataContext="{d:DesignInstance viewmodels:LabViewModel}"
+        Width="300"
+        Height="400"
         WindowStartupLocation="CenterOwner"
         mc:Ignorable="d">
 
@@ -25,15 +25,35 @@
             <TextBlock Foreground="Red"
                        Text="{Binding StringField.TextError}"/>
 
-            <TextBlock Text="int nullable"/>
-            <TextBox Text="{Binding IntField.RawValue, UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBlock Foreground="Red"
-                       Text="{Binding IntField.TextError}"/>
+            <StackPanel>
+                <TextBlock Text="int nullable"/>
+                <TextBox Text="{Binding IntField.RawValue, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBlock Foreground="Red"
+                           Text="{Binding IntField.TextError}"/>
 
-            <TextBlock Text="double nullable"/>
-            <TextBox Text="{Binding DoubleField.RawValue, UpdateSourceTrigger=PropertyChanged}"/>
-            <TextBlock Foreground="Red"
-                       Text="{Binding DoubleField.TextError}"/>
+                <TextBlock Margin="0,5,0,0"
+                           Text="Value:"/>
+                <TextBlock Text="{Binding IntField.Value}"/>
+
+                <TextBlock Margin="0,5,0,0"
+                           Text="RawValue:"/>
+                <TextBlock Text="{Binding IntField.RawValue}"/>
+            </StackPanel>
+
+            <StackPanel>
+                <TextBlock Text="double nullable"/>
+                <TextBox Text="{Binding DoubleField.RawValue, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBlock Foreground="Red"
+                           Text="{Binding DoubleField.TextError}"/>
+
+                <TextBlock Margin="0,5,0,0"
+                           Text="Value:"/>
+                <TextBlock Text="{Binding DoubleField.Value}"/>
+
+                <TextBlock Margin="0,5,0,0"
+                           Text="RawValue:"/>
+                <TextBlock Text="{Binding DoubleField.RawValue}"/>
+            </StackPanel>
 
             <TextBlock Text="bool"/>
             <CheckBox IsChecked="{Binding BoolField.Value, UpdateSourceTrigger=PropertyChanged}"/>

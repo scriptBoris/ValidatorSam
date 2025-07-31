@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 #nullable enable
@@ -29,7 +30,7 @@ namespace ValidatorSam.Core
     /// <summary>
     /// PreprocessResult
     /// </summary>
-    public class PreprocessResult
+    public class PreprocessResult<T>
     {
         private PreprocessResult()
         {
@@ -48,7 +49,8 @@ namespace ValidatorSam.Core
         /// <summary>
         /// Modificated Value
         /// </summary>
-        public object? ValueResult { get; private set; }
+        [AllowNull]
+        public T ValueResult { get; private set; }
 
         /// <summary>
         /// Modificated RawValue
@@ -60,9 +62,9 @@ namespace ValidatorSam.Core
         /// </summary>
         /// <param name="value">modificated Value</param>
         /// <param name="raw">modificated RawValue</param>
-        public static PreprocessResult Success(object? value, string? raw)
+        public static PreprocessResult<T> Success([AllowNull]T value, string? raw)
         {
-            return new PreprocessResult
+            return new PreprocessResult<T>
             {
                 ResultType = PreprocessResultType.Success,
                 ValueResult = value,
@@ -76,9 +78,9 @@ namespace ValidatorSam.Core
         /// <param name="errorText">Required error text</param>
         /// <param name="value">modificated Value</param>
         /// <param name="raw">modificated RawValue</param>
-        public static PreprocessResult Error(string errorText, object? value, string? raw)
+        public static PreprocessResult<T> Error(string errorText, T value, string? raw)
         {
-            return new PreprocessResult
+            return new PreprocessResult<T>
             {
                 ResultType = PreprocessResultType.Error,
                 ErrorText = errorText,
@@ -90,9 +92,9 @@ namespace ValidatorSam.Core
         /// <summary>
         /// the value will not modificated
         /// </summary>
-        public static PreprocessResult Ignore()
+        public static PreprocessResult<T> Ignore()
         {
-            return new PreprocessResult() { ResultType = PreprocessResultType.Ignore };
+            return new PreprocessResult<T>() { ResultType = PreprocessResultType.Ignore };
         }
     }
 }

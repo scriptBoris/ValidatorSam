@@ -18,7 +18,7 @@ namespace ValidatorTests
             Assert.AreEqual("-", Float.RawValue, $"\n{Float.TextError}");
         }
 
-        // Если пользователь указал "-" (uint)
+        // Если пользователь указал "-" (uint 0-4_294_967_295)
         public Validator<uint> Uint => Validator<uint>.Build()
             .UsingRequired();
 
@@ -27,7 +27,7 @@ namespace ValidatorTests
         {
             Uint.RawValue = "-";
             Assert.AreEqual(0u, Uint.Value, $"\n{Uint.TextError}");
-            Assert.AreEqual("0", Uint.RawValue, $"\n{Uint.TextError}");
+            Assert.AreEqual("", Uint.RawValue, $"\n{Uint.TextError}");
         }
 
         // Внешне указано: -20 (int? 0-322)
@@ -85,6 +85,25 @@ namespace ValidatorTests
         public void TestNullableDateTimeEmpty2()
         {
             Assert.AreEqual(false, UserBirthday2.HasValue);
+        }
+
+        // Тест на работоспособность перерисовки RawValue для UI
+        public Validator<int?> OrderNumber => Validator<int?>.Build()
+            .UsingRequired();
+        [TestMethod]
+        public void TestEmulation()
+        {
+            string? rawUI = null;
+            OrderNumber.PropertyChanged += (o, e) =>
+            {
+                if (e.PropertyName == "RawValue")
+                    rawUI = OrderNumber.RawValue;
+            };
+
+            OrderNumber.RawValue = "123";
+            Assert.AreEqual(123, OrderNumber.Value);
+            Assert.AreEqual("123", rawUI);
+            Assert.AreEqual(true, OrderNumber.IsValid);
         }
     }
 }

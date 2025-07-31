@@ -1,5 +1,6 @@
 ﻿using System;
 using ValidatorSam.Internal;
+using ValidatorSam.Converters;
 
 #nullable enable
 namespace ValidatorSam
@@ -148,7 +149,7 @@ namespace ValidatorSam
         /// tip: use it if you want to create a phone mask or something like that.
         /// </summary>
         /// <param name="cast">preprocessor</param>
-        public ValidatorBuilder<T> UsingPreprocessor(PreprocessorHandler cast)
+        public ValidatorBuilder<T> UsingPreprocessor(PreprocessorHandler<T> cast)
         {
             Validator._preprocess.Add(cast);
             return this;
@@ -170,54 +171,38 @@ namespace ValidatorSam
             if (nullableGenericType != null)
                 type = nullableGenericType;
 
-            switch (Type.GetTypeCode(type))
+            var typeCode = Type.GetTypeCode(type);
+            switch (typeCode)
             {
                 case TypeCode.Byte:
-                    Validator._defaultCast = PreprocessorCollection.CastUint8;
-                    break;
                 case TypeCode.UInt16:
-                    Validator._defaultCast = PreprocessorCollection.CastUint16;
-                    break;
                 case TypeCode.UInt32:
-                    Validator._defaultCast = PreprocessorCollection.CastUint32;
-                    break;
                 case TypeCode.UInt64:
-                    Validator._defaultCast = PreprocessorCollection.CastUint64;
-                    break;
                 case TypeCode.SByte:
-                    Validator._defaultCast = PreprocessorCollection.CastInt8;
-                    break;
                 case TypeCode.Int16:
-                    Validator._defaultCast = PreprocessorCollection.CastInt16;
-                    break;
                 case TypeCode.Int32:
-                    Validator._defaultCast = PreprocessorCollection.CastInt32;
-                    break;
                 case TypeCode.Int64:
-                    Validator._defaultCast = PreprocessorCollection.CastInt64;
-                    break;
                 case TypeCode.Single:
-                    Validator._defaultCast = PreprocessorCollection.CastFloat;
-                    break;
                 case TypeCode.Double:
-                    Validator._defaultCast = PreprocessorCollection.CastDouble;
-                    break;
                 case TypeCode.Decimal:
-                    Validator._defaultCast = PreprocessorCollection.CastDecimal;
+                    Validator._defaultCastConverter = new NumbersConverter<T>(typeCode);
                     break;
                 default:
                     break;
             }
         }
 
+        /// <summary>
+        /// Auto commit builder
+        /// </summary>
+        /// <param name="builder">Validator constructor</param>
         public static implicit operator Validator<T>(ValidatorBuilder<T> builder)
         {
-            object? initValue = builder.Validator.InitValue;
-            var hrw = builder.Validator.HandleRaw(null, initValue);
+            var initValue = builder.Validator.InitValue;
+            var hrw = builder.Validator.HandleRawDefault(default, initValue);
 
             builder.Validator._value = initValue;
-            builder.Validator._rawValue = hrw.newRaw;
-
+            builder.Validator._rawValue = hrw.NewRaw;
 
             return builder.Validator;
         }

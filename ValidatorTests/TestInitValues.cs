@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -87,6 +88,26 @@ namespace ValidatorTests
         {
             string value = DefaultName.Value;
             Assert.AreEqual(true, DefaultName.IsVisualValid);
+        }
+
+        // Проверка на изначальное отображение текста в RawValue
+        public Validator<double> DefaultDouble => Validator<double>.Build()
+            .UsingValue(1.234);
+        [TestMethod]
+        public void CheckDefaultDoubleRawValueWithFormat()
+        {
+            string? raw = DefaultDouble.RawValue?.Replace(',', '.');
+            Assert.AreEqual("1.234", raw);
+        }
+
+        // Проверка на изначальное отображение текста в RawValue
+        public Validator<double> DefaultDouble2 => Validator<double>.Build()
+            .UsingValue(123)
+            .UsingRawValueFormat("0.00", CultureInfo.InvariantCulture);
+        [TestMethod]
+        public void CheckDefaultDoubleRawValue()
+        {
+            Assert.AreEqual("123.00", DefaultDouble2.RawValue);
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using ValidatorSam.Core;
 using ValidatorSam.Internal;
+using System.Globalization;
 
 #nullable enable
 namespace ValidatorSam
@@ -104,27 +105,25 @@ namespace ValidatorSam
             self.UsingPreprocessor(x =>
             {
                 if (x.NewValue == null)
-                    return PreprocessResult.Ignore();
+                    return PreprocessResult<string>.Ignore();
 
-                if (x.NewValue is string newValueStr)
+                string newValueStr = x.NewValue;
+                if (newValueStr == "")
+                    return PreprocessResult<string>.Ignore();
+
+                int length = newValueStr.Length;
+                if (length < min)
                 {
-                    if (newValueStr == "")
-                        return PreprocessResult.Ignore();
-
-                    int length = newValueStr.Length;
-                    if (length < min)
-                    {
-                        string msg = string.Format(ValidatorLocalization.Resolve.StringLengthLess, min);
-                        return PreprocessResult.Error(msg, newValueStr, null);
-                    }
-                    else if (length > max)
-                    {
-                        string msg = string.Format(ValidatorLocalization.Resolve.StringLengthOver, max);
-                        return PreprocessResult.Error(msg, newValueStr.Substring(0, (int)max + 1), null);
-                    }
+                    string msg = string.Format(ValidatorLocalization.Resolve.StringLengthLess, min);
+                    return PreprocessResult<string>.Error(msg, newValueStr, null);
+                }
+                else if (length > max)
+                {
+                    string msg = string.Format(ValidatorLocalization.Resolve.StringLengthOver, max);
+                    return PreprocessResult<string>.Error(msg, newValueStr.Substring(0, (int)max + 1), null);
                 }
 
-                return PreprocessResult.Ignore();
+                return PreprocessResult<string>.Ignore();
             });
 
             return self;
@@ -141,54 +140,71 @@ namespace ValidatorSam
         /// <param name="self">builder instance</param>
         /// <param name="min">minimum</param>
         /// <param name="max">maximum</param>
-        public static ValidatorBuilder<T> UsingLimitations<T>(this ValidatorBuilder<T> self, T min, T max)
-            where T : struct
+        public static ValidatorBuilder<T> UsingLimitations<T>(this ValidatorBuilder<T> self, [DisallowNull]T min, [DisallowNull]T max)
         {
             self.UsingPreprocessor(x =>
             {
-                return CommonLimitations(x, min, max);
+                return CommonLimitations<T>(x, min, max);
             });
             return self;
         }
 
-        /// <summary>
-        /// Creates a preprocessor that limits input values ​​to the ranges min to max.
-        /// <br/>
-        /// --- 
-        /// <br/>
-        /// For example, you can use this to specify DateTime, int or other structs constraints
-        /// </summary>
-        /// <param name="self">builder instance</param>
-        /// <param name="min">minimum</param>
-        /// <param name="max">maximum</param>
-        public static ValidatorBuilder<T?> UsingLimitations<T>(this ValidatorBuilder<T?> self, T min, T max)
-            where T : struct
+        private static PreprocessResult<T> CommonLimitations<T>(ValidatorPreprocessArgs<T> arg, [DisallowNull]T min, [DisallowNull] T max)
         {
-            self.UsingPreprocessor(x =>
-            {
-                return CommonLimitations(x, min, max);
-            });
-            return self;
-        }
-
-        private static PreprocessResult CommonLimitations(ValidatorPreprocessArgs arg, object min, object max)
-        {
-            if (arg.NewValue is IComparable nc && arg.NewValue.GetType() == min.GetType())
+            if (arg.NewValue is IComparable nc)
             {
                 if (nc.CompareTo(min) < 0)
                 {
                     string msg = string.Format(ValidatorLocalization.Resolve.StringValueLess, min);
-                    return PreprocessResult.Error(msg, min, null);
+                    return PreprocessResult<T>.Error(msg, min, null);
                 }
 
                 if (nc.CompareTo(max) > 0)
                 {
                     string msg = string.Format(ValidatorLocalization.Resolve.StringValueOver, max);
-                    return PreprocessResult.Error(msg, max, null);
+                    return PreprocessResult<T>.Error(msg, max, null);
                 }
             }
 
-            return PreprocessResult.Ignore();
+            return PreprocessResult<T>.Ignore();
+        }
+
+        /// <summary>
+        /// Enables formatting of the value of type T when converting it to a string (RawValue)
+        /// <br/>
+        /// For example, the format "0.00" will display a double value as 0.00.
+        /// </summary>
+        /// <param name="self">Builder instance</param>
+        /// <param name="format">The string format used to display the value.</param>
+        /// <param name="cultureInfo">
+        /// The culture to use for formatting. 
+        /// Pass null to use CultureInfo.InvariantCulture.
+        /// </param>
+        public static ValidatorBuilder<T> UsingRawValueFormat<T>(this ValidatorBuilder<T> self, string format, CultureInfo? cultureInfo = null) 
+            where T : struct
+        {
+            self.Validator._stringFormat = format;
+            self.Validator._cultureInfo = cultureInfo ?? CultureInfo.InvariantCulture;
+            return self;
+        }
+
+        /// <summary>
+        /// Enables formatting of the value of type T when converting it to a string (RawValue)
+        /// <br/>
+        /// For example, the format "0.00" will display a double value as 0.00.
+        /// </summary>
+        /// <param name="self">Builder instance</param>
+        /// <param name="format">The string format used to display the value.</param>
+        /// <param name="cultureInfo">
+        /// The culture to use for formatting. 
+        /// Pass null to use CultureInfo.InvariantCulture.
+        /// </param>
+        public static ValidatorBuilder<T?> UsingRawValueFormat<T>(this ValidatorBuilder<T?> self, string format, CultureInfo? cultureInfo = null)
+            where T : struct
+        {
+            self.Validator._stringFormat = format;
+            self.Validator._cultureInfo = cultureInfo ?? CultureInfo.InvariantCulture;
+            return self;
         }
     }
 }
