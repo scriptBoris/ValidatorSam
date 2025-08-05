@@ -9,7 +9,7 @@
         d:Background="White"
         d:DataContext="{d:DesignInstance viewmodels:LabViewModel}"
         Width="300"
-        Height="400"
+        Height="600"
         WindowStartupLocation="CenterOwner"
         mc:Ignorable="d">
 
@@ -53,6 +53,21 @@
                 <TextBlock Margin="0,5,0,0"
                            Text="RawValue:"/>
                 <TextBlock Text="{Binding DoubleField.RawValue}"/>
+            </StackPanel>
+
+            <StackPanel>
+                <TextBlock Text="date time"/>
+                <TextBox Text="{Binding DateField.RawValue, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBlock Foreground="Red"
+                           Text="{Binding DateField.TextError}"/>
+
+                <TextBlock Margin="0,5,0,0"
+                           Text="Value:"/>
+                <TextBlock Text="{Binding DateField.Value, StringFormat='yyyy.MM.dd'}"/>
+
+                <TextBlock Margin="0,5,0,0"
+                           Text="RawValue:"/>
+                <TextBlock Text="{Binding DateField.RawValue}"/>
             </StackPanel>
 
             <TextBlock Text="bool"/>

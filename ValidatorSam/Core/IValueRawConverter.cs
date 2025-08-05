@@ -16,13 +16,21 @@ namespace ValidatorSam.Core
     public interface IValueRawConverter<T>
     {
         /// <summary>
+        /// If Validator StringFormat has been changed at runtime, the converter will 
+        /// know about the change in this method.
+        /// </summary>
+        virtual void OnStringFormartChanged(string? newStringFormat)
+        {
+        }
+
+        /// <summary>
         /// Converts user text input (RawValue) into to value of type (Value)
         /// </summary>
         /// <param name="rawValue">Current user input text</param>
         /// <param name="oldRawValue">Previous user input text</param>
         /// <param name="oldValue">The old value that is already valid and parsed</param>
         /// <param name="validator">Invoker.</param>
-        ConverterResult<T> RawToValue(string rawValue, string oldRawValue, T oldValue, Validator validator);
+        ConverterResult<T> RawToValue(ReadOnlySpan<char> rawValue, ReadOnlySpan<char> oldRawValue, T oldValue, Validator validator);
 
         /// <summary>
         /// Converts value of type (Value) into user text input (RawValue)
@@ -102,6 +110,21 @@ namespace ValidatorSam.Core
         }
 
         /// <summary>
+        /// The conveter successful changed the value
+        /// </summary>
+        /// <param name="value">modificated Value</param>
+        /// <param name="rawValue">modificated text value (RawValue)</param>
+        public static ConverterResult<T2> Success<T2>(T2 value, ReadOnlySpan<char> rawValue)
+        {
+            return new ConverterResult<T2>
+            {
+                ResultType = ConverterResultType.Success,
+                Result = value,
+                RawResult = rawValue.ToString(),
+            };
+        }
+
+        /// <summary>
         /// An error occurred during conveterer operation
         /// </summary>
         /// <param name="errorText">required error text</param>
@@ -115,6 +138,23 @@ namespace ValidatorSam.Core
                 ErrorText = errorText,
                 Result = value,
                 RawResult = rawValue,
+            };
+        }
+
+        /// <summary>
+        /// An error occurred during conveterer operation
+        /// </summary>
+        /// <param name="errorText">required error text</param>
+        /// <param name="value">modificated Value</param>
+        /// <param name="rawValue">modificated RawValue</param>
+        public static ConverterResult<T> Error<T>(string errorText, T value, ReadOnlySpan<char> rawValue)
+        {
+            return new ConverterResult<T>
+            {
+                ResultType = ConverterResultType.Error,
+                ErrorText = errorText,
+                Result = value,
+                RawResult = rawValue.ToString(),
             };
         }
 

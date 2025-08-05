@@ -1,6 +1,7 @@
 ﻿using System;
 using ValidatorSam.Internal;
 using ValidatorSam.Converters;
+using ValidatorSam.Core;
 
 #nullable enable
 namespace ValidatorSam
@@ -20,8 +21,6 @@ namespace ValidatorSam
         /// </summary>
         internal ValidatorBuilder()
         {
-            var genericType = typeof(T);
-            ResolveAutoCast(genericType);
         }
 
         internal static ValidatorBuilder<T> Build(string propName)
@@ -187,6 +186,24 @@ namespace ValidatorSam
                 case TypeCode.Decimal:
                     Validator._defaultCastConverter = new NumbersConverter<T>(typeCode);
                     break;
+                case TypeCode.DateTime:
+                    {
+                        // default DateTime
+                        if (nullableGenericType == null)
+                        {
+                            var dtConverter = new DateTimeConverter(Validator.StringFormat);
+                            if (dtConverter is IValueRawConverter<T> dtConverterT)
+                                Validator._defaultCastConverter = dtConverterT;
+                        }
+                        // nullable DateTime
+                        else
+                        {
+                            var dtNullConverter = new DateTimeNullConverter(Validator.StringFormat);
+                            if (dtNullConverter is IValueRawConverter<T> dtNullConverterT)
+                                Validator._defaultCastConverter = dtNullConverterT;
+                        }
+                    }
+                    break;
                 default:
                     break;
             }
@@ -198,6 +215,9 @@ namespace ValidatorSam
         /// <param name="builder">Validator constructor</param>
         public static implicit operator Validator<T>(ValidatorBuilder<T> builder)
         {
+            var genericType = typeof(T);
+            builder.ResolveAutoCast(genericType);
+
             var initValue = builder.Validator.InitValue;
             var hrw = builder.Validator.HandleRawDefault(default, initValue);
 

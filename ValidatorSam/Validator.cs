@@ -42,7 +42,6 @@ namespace ValidatorSam
         internal string? _customName;
         private string _name = "undefined";
         internal bool _isGenericStringType;
-        internal string? _stringFormat;
         internal CultureInfo? _cultureInfo;
         protected bool unlockVisualValid;
 
@@ -117,6 +116,13 @@ namespace ValidatorSam
                     ErrorChanged?.Invoke(this, ValidatorErrorTextArgs.Hide);
             }
         }
+
+        /// <summary>
+        /// Special string for formating Value to RawValue, and reverse;
+        /// <br/>
+        /// If contains are null
+        /// </summary>
+        public abstract string? StringFormat { get; set; }
 
         /// <summary>
         /// Indicates whether the validator contains a value or not
@@ -221,10 +227,11 @@ namespace ValidatorSam
         /// </summary>
         /// <param name="old">Старое значение</param>
         /// <param name="newest">Новое значение</param>
+        /// <param name="invoker">Источник вызова этого метода</param>
         /// <param name="updateRaw">Обновлять ли RawValue</param>
         /// <param name="useValidations">Включить правила валидации</param>
         /// <param name="usePreprocessors"></param>
-        protected abstract void SetValue(object? old, object? newest, bool updateRaw, bool useValidations, bool usePreprocessors);
+        internal abstract void SetValue(object? old, object? newest, ValueInvokers invoker, bool updateRaw, bool useValidations, bool usePreprocessors);
 
         #region internal methods
         internal abstract ValidatorResult InternalCheckValid(object? genericValue, bool useValidation, bool usePreprocessors);
@@ -314,7 +321,7 @@ namespace ValidatorSam
             if (mode.HasFlag(RatModes.Default))
             {
                 var _value = GenericGetValue();
-                SetValue(_value, value, true, !skipValidations, !skipPreprocessors);
+                SetValue(_value, value, ValueInvokers.Value, true, !skipValidations, !skipPreprocessors);
             }
         }
 

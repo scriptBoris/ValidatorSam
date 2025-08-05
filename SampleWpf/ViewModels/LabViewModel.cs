@@ -52,6 +52,10 @@ namespace SampleWpf.ViewModels
         public Validator<bool> BoolField => Validator<bool>.Build()
             .UsingRequired();
 
+        public Validator<DateTime> DateField => Validator<DateTime>.Build()
+            .UsingRawValueFormat("yyyy.MM.dd")
+            .UsingRequired();
+
         public ICommand CommandCheckValid => new Command(() =>
         {
             var all = Validator.GetAll(this);

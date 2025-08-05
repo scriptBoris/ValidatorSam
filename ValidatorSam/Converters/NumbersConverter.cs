@@ -35,7 +35,7 @@ namespace ValidatorSam.Converters
         }
 
         /// <inheritdoc/>
-        public ConverterResult<T> RawToValue(string rawValue, string oldRaw, T oldValue, Validator validator)
+        public ConverterResult<T> RawToValue(ReadOnlySpan<char> rawValue, ReadOnlySpan<char> oldRaw, T oldValue, Validator validator)
         {
             switch (_typeCode)
             {
@@ -63,9 +63,9 @@ namespace ValidatorSam.Converters
         /// <inheritdoc/>
         public ConverterResult<T> ValueToRaw([AllowNull] T newValue, [AllowNull] T oldValue, Validator validator)
         {
-            if (newValue is IFormattable fnewValue && validator._stringFormat != null)
+            if (newValue is IFormattable fnewValue && validator.StringFormat != null)
             {
-                string raw = fnewValue.ToString(validator._stringFormat, validator._cultureInfo);
+                string raw = fnewValue.ToString(validator.StringFormat, validator._cultureInfo);
                 return ConverterResult.Success<T>(newValue, raw);
             }
             else
@@ -76,8 +76,8 @@ namespace ValidatorSam.Converters
         }
 
         internal static ConverterResult<T> MasterParse(
-            string rawValue,
-            string oldRaw,
+            ReadOnlySpan<char> rawValue,
+            ReadOnlySpan<char> oldRaw,
             T oldValue,
             TypeCode code,
             bool maybeComma,
@@ -267,7 +267,7 @@ namespace ValidatorSam.Converters
             return true;
         }
 
-        private static void ProcessInt(string newValueStr, StringBuilder sbLogic, StringBuilder sbRaw)
+        private static void ProcessInt(ReadOnlySpan<char> newValueStr, StringBuilder sbLogic, StringBuilder sbRaw)
         {
             bool hasZero = false;
             bool goNumbers = false;
@@ -339,7 +339,7 @@ namespace ValidatorSam.Converters
             }
         }
 
-        private static void ProcessIntPositive(string newValueStr, StringBuilder sbLogic, StringBuilder sbRaw)
+        private static void ProcessIntPositive(ReadOnlySpan<char> newValueStr, StringBuilder sbLogic, StringBuilder sbRaw)
         {
             bool hasMinus = false;
             bool hasZero = false;
@@ -406,7 +406,7 @@ namespace ValidatorSam.Converters
             }
         }
 
-        private static void ProcessFloat(string newValueStr, StringBuilder sbLogic, StringBuilder sbRaw, int limit)
+        private static void ProcessFloat(ReadOnlySpan<char> newValueStr, StringBuilder sbLogic, StringBuilder sbRaw, int limit)
         {
             bool hasMinus = false;
             bool hasZero = false;
