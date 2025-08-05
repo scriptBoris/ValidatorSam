@@ -29,7 +29,9 @@ namespace ValidatorSam
         internal T _value;
         internal string? _rawValue;
         internal string? _stringFormat;
+        internal CultureInfo? _cultureInfo;
         private string? _convertError;
+        private bool _isUnlockedVisualValid;
 
         internal Validator()
         {
@@ -64,14 +66,37 @@ namespace ValidatorSam
             internal set => base.InitValue = value;
         }
 
-        /// <inheritdoc />
-        public override string? StringFormat 
+        /// <inheritdoc/>
+        public override string? StringFormat
         {
             get => _stringFormat;
-            set 
+            set
             {
                 _stringFormat = value;
                 _defaultCastConverter?.OnStringFormartChanged(value);
+            }
+        }
+
+        /// <inheritdoc/>
+        public override CultureInfo? CultureInfo
+        {
+            get => _cultureInfo;
+            set
+            {
+                _cultureInfo = value;
+                _defaultCastConverter?.OnCultureInfoChanged(value);
+            }
+        }
+
+        /// <inheritdoc/>
+        public override bool IsVisualValid
+        {
+            get
+            {
+                if (!_isUnlockedVisualValid)
+                    return true;
+                else
+                    return IsValid && TextError == null;
             }
         }
 
@@ -85,6 +110,28 @@ namespace ValidatorSam
 
         /// <inheritdoc/>
         public override bool HasValue => !CheckValueIsEmpty(Value);
+
+        /// <inheritdoc/>
+        public override ValidatorResult CheckValid()
+        {
+            var res = InternalCheckValid(Value, true, true);
+            _isUnlockedVisualValid = true;
+            IsValid = res.IsValid;
+            TextError = res.TextError;
+            InvokeErrorChanged(this, ValidatorErrorTextArgs.Calc(!res.IsValid, res.TextError));
+            //ErrorChanged?.Invoke(this, ValidatorErrorTextArgs.Calc(!res.IsValid, res.TextError));
+            return res;
+        }
+
+        /// <inheritdoc/>
+        public override void SetError(string textError)
+        {
+            _isUnlockedVisualValid = true;
+            IsValid = false;
+            TextError = textError;
+            InvokeErrorChanged(this, ValidatorErrorTextArgs.Calc(true, textError));
+            OnPropertyChanged(nameof(IsVisualValid));
+        }
 
         /// <inheritdoc/>
         protected override object? GenericGetValue()
@@ -161,18 +208,6 @@ namespace ValidatorSam
                     throw new NotImplementedException();
             }
 
-            //if (successConvert == ConverterResultType.Success)
-            //{
-            //    _convertError = null;
-            //}
-            //else if (successConvert == ConverterResultType.Error)
-            //{
-            //    _value = default;
-            //    _convertError = "raw error";
-            //    SetError("raw error");
-            //    noError = false;
-            //}
-
             bool notEqualValues = !Equals(_value, result);
             bool notEqualRawValues = !rawValue.SequenceEqual(input);
 
@@ -183,43 +218,10 @@ namespace ValidatorSam
                 OnPropertyChanged(nameof(RawValue));
         }
 
-        //private void SetRawValue_OLD(ReadOnlySpan<char> value)
-        //{
-        //    var rawValue = _rawValue != null ? _rawValue.AsSpan() : ReadOnlySpan<char>.Empty;
-        //    var input = value;
-
-        //    if (rawValue.SequenceEqual(input))
-        //        return;
-
-        //    var successConvert = TryConvertRawToValue(rawValue, value, out var result, out var raw);
-        //    _rawValue = raw.ToString();
-        //    bool noError = true;
-        //    if (successConvert == ConverterResultType.Success)
-        //    {
-        //        _convertError = null;
-        //    }
-        //    else if (successConvert == ConverterResultType.Error)
-        //    {
-        //        _value = default;
-        //        _convertError = "raw error";
-        //        SetError("raw error");
-        //        noError = false;
-        //    }
-
-        //    bool notEqualValues = !Equals(_value, result);
-        //    bool notEqualRawValues = !rawValue.SequenceEqual(input);
-
-        //    if (noError && (notEqualValues || notEqualRawValues))
-        //        SetValue(_value, result, ValueInvokers.RawValue, false, true, true);
-
-        //    if (notEqualRawValues)
-        //        OnPropertyChanged(nameof(RawValue));
-        //}
-
         /// <summary>
         /// Check value is empty or not
         /// </summary>
-        protected bool CheckValueIsEmpty([AllowNull]T genericValue)
+        protected bool CheckValueIsEmpty([AllowNull] T genericValue)
         {
             bool isEmpty;
 
@@ -240,7 +242,7 @@ namespace ValidatorSam
         }
 
         /// <inheritdoc/>
-        protected ValidatorResult ExecuteRule([AllowNull]T value, int ruleId)
+        protected ValidatorResult ExecuteRule([AllowNull] T value, int ruleId)
         {
             // Ugly construction :Q
             // Compatability NET2.1
@@ -267,15 +269,17 @@ namespace ValidatorSam
         }
 
         /// <inheritdoc/>
-        protected void ThrowValueChangeListener([AllowNull]T oldValue, [AllowNull]T newValue)
+        protected void ThrowValueChangeListener([AllowNull] T oldValue, [AllowNull] T newValue)
         {
             if (oldValue is T tOld) { }
-            else { 
+            else
+            {
                 tOld = default(T);
             }
 
             if (newValue is T tNew) { }
-            else {
+            else
+            {
                 tNew = default(T);
             }
 
@@ -305,7 +309,7 @@ namespace ValidatorSam
         }
 
         /// <inheritdoc cref="Validator.SetValue"/>
-        private void SetValue([AllowNull]T old, [AllowNull]T newest, ValueInvokers invoker, bool updateRaw, bool useValidations, bool usePreprocessors)
+        private void SetValue([AllowNull] T old, [AllowNull] T newest, ValueInvokers invoker, bool updateRaw, bool useValidations, bool usePreprocessors)
         {
             ValidatorResult? prepError = null;
             string? newRaw = null;
@@ -339,7 +343,7 @@ namespace ValidatorSam
                 bool oldValid = IsValid;
                 string? oldTextError = TextError;
 
-                unlockVisualValid = true;
+                _isUnlockedVisualValid = true;
                 if (oldValid != res.IsValid)
                 {
                     IsValid = res.IsValid;
@@ -369,7 +373,7 @@ namespace ValidatorSam
         /// <summary>
         /// Преобразует value => raw value с учетом препроцессоров
         /// </summary>
-        private HandleRawResult<T> HandleRaw([AllowNull]T old, [AllowNull]T newest)
+        private HandleRawResult<T> HandleRaw([AllowNull] T old, [AllowNull] T newest)
         {
             ValidatorResult? prepError = null;
             string? newRaw = null;
@@ -412,7 +416,7 @@ namespace ValidatorSam
             };
         }
 
-        private ValidatorResult InternalCheckValid([AllowNull]T genericValue, bool useValidation, bool usePreprocessors)
+        private ValidatorResult InternalCheckValid([AllowNull] T genericValue, bool useValidation, bool usePreprocessors)
         {
             bool isValid = true;
             string? textError = null;
@@ -481,7 +485,7 @@ namespace ValidatorSam
         /// Преобразует Value в текстовое представление для RawValue
         /// (например для цифр, int, double и т.д.)
         /// </summary>
-        internal HandleRawResult<T> HandleRawDefault([AllowNull]T old, [AllowNull]T newest)
+        internal HandleRawResult<T> HandleRawDefault([AllowNull] T old, [AllowNull] T newest)
         {
             ValidatorResult? prepError = null;
             string? newRaw = null;
@@ -523,17 +527,6 @@ namespace ValidatorSam
                 NewValue = newValue,
                 ForceUpdateRaw = forceUpdateRaw,
             };
-        }
-
-        internal override ValidatorResult InternalCheckValid(object? genericValue, bool useValidation, bool usePreprocessors)
-        {
-            T value;
-            if (genericValue is T castOld)
-                value = castOld;
-            else
-                value = default;
-
-            return InternalCheckValid(value, useValidation, usePreprocessors);
         }
 
         /// <inheritdoc cref="Validator.SetValueAsRat(object?, RatModes)"/>
@@ -584,66 +577,10 @@ namespace ValidatorSam
             {
                 var castResult = _defaultCastConverter.RawToValue(newRaw, oldRaw, _value, this);
                 return castResult;
-                //if (castResult.ResultType == ConverterResultType.Success)
-                //{
-                //    raw = castResult.RawResult;
-                //    result = castResult.Result;
-                //    return ConverterResultType.Success;
-                //}
-                //else if (castResult.ResultType == ConverterResultType.Error)
-                //{
-                //    raw = castResult.RawResult;
-                //    result = castResult.Result;
-                //    return ConverterResultType.Error;
-                //}
-                //else
-                //{
-                //    raw = newRaw;
-                //    result = default!;
-                //    return ConverterResultType.Skip;
-                //}
             }
             else
             {
                 return ConverterResult.Ignore<T>();
-                //raw = newRaw;
-                //result = default!;
-                //return ConverterResultType.Skip;
-            }
-        }
-
-        /// <summary>
-        /// Пытается парсить rawValue (пользовательский ввод) в Generic Type (T)
-        /// </summary>
-        private ConverterResultType TryConvertRawToValue_OLD(ReadOnlySpan<char> oldRaw, ReadOnlySpan<char> newRaw, [AllowNull]out T result, out ReadOnlySpan<char> raw)
-        {
-            if (_defaultCastConverter != null)
-            {
-                var castResult = _defaultCastConverter.RawToValue(newRaw, oldRaw, _value, this);
-                if (castResult.ResultType == ConverterResultType.Success)
-                {
-                    raw = castResult.RawResult;
-                    result = castResult.Result;
-                    return ConverterResultType.Success;
-                }
-                else if (castResult.ResultType == ConverterResultType.Error)
-                {
-                    raw = castResult.RawResult;
-                    result = castResult.Result;
-                    return ConverterResultType.Error;
-                }
-                else
-                {
-                    raw = newRaw;
-                    result = default!;
-                    return ConverterResultType.Skip;
-                }
-            }
-            else
-            {
-                raw = newRaw;
-                result = default!;
-                return ConverterResultType.Skip;
             }
         }
     }

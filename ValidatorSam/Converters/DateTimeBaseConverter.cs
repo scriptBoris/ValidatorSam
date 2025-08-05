@@ -83,7 +83,7 @@ namespace ValidatorSam.Converters
         /// </summary>
         protected ConverterResult<DateTime?> MasterParse(ReadOnlySpan<char> rawValue, Validator validator)
         {
-            var culture = validator._cultureInfo ?? CultureInfo.CurrentCulture;
+            var culture = validator.CultureInfo ?? CultureInfo.CurrentCulture;
             var stringFormat = (validator.StringFormat ?? DEFAULT_DATEFORMAT).AsSpan();
             int year = 0;
             int month = 0;

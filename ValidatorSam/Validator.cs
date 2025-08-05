@@ -35,15 +35,12 @@ namespace ValidatorSam
     public abstract class Validator : INotifyPropertyChanged
     {
         internal ISourceRequired? _required;
-
         internal bool _isEnabled = true;
+        internal bool _isGenericStringType;
+        internal string? _customName;
         private string? _textError;
         private bool _isValid;
-        internal string? _customName;
         private string _name = "undefined";
-        internal bool _isGenericStringType;
-        internal CultureInfo? _cultureInfo;
-        protected bool unlockVisualValid;
 
         /// <summary>
         /// Implementation INotifyPropertyChanged event
@@ -120,9 +117,16 @@ namespace ValidatorSam
         /// <summary>
         /// Special string for formating Value to RawValue, and reverse;
         /// <br/>
-        /// If contains are null
+        /// If it contains null, then converters can interpret the format themselves. 
         /// </summary>
         public abstract string? StringFormat { get; set; }
+
+        /// <summary>
+        /// Special string for formating Value to RawValue, and reverse;
+        /// <br/>
+        /// If it contains null, then converters can interpret the format themselves. 
+        /// </summary>
+        public abstract CultureInfo? CultureInfo { get; set; }
 
         /// <summary>
         /// Indicates whether the validator contains a value or not
@@ -157,16 +161,7 @@ namespace ValidatorSam
         /// property will return IsValid;
         /// Otherwise: this property will return True;
         /// </summary>
-        public bool IsVisualValid
-        {
-            get
-            {
-                if (!unlockVisualValid)
-                    return true;
-                else
-                    return IsValid && TextError == null;
-            }
-        }
+        public abstract bool IsVisualValid { get; }
 
         /// <summary>
         /// Contains first match error
@@ -234,8 +229,6 @@ namespace ValidatorSam
         internal abstract void SetValue(object? old, object? newest, ValueInvokers invoker, bool updateRaw, bool useValidations, bool usePreprocessors);
 
         #region internal methods
-        internal abstract ValidatorResult InternalCheckValid(object? genericValue, bool useValidation, bool usePreprocessors);
-
         /// <summary>
         /// THIS PROPERTY IMPORTANT for Fody postprocessor
         /// </summary>
@@ -282,15 +275,7 @@ namespace ValidatorSam
         /// <summary>
         /// Manually checking the validator
         /// </summary>
-        public ValidatorResult CheckValid()
-        {
-            var res = InternalCheckValid(Value, true, true);
-            unlockVisualValid = true;
-            IsValid = res.IsValid;
-            TextError = res.TextError;
-            ErrorChanged?.Invoke(this, ValidatorErrorTextArgs.Calc(!res.IsValid, res.TextError));
-            return res;
-        }
+        public abstract ValidatorResult CheckValid();
 
         /// <summary>
         /// If there is a visual error, then a manual validation check will be called. 
@@ -328,14 +313,7 @@ namespace ValidatorSam
         /// <summary>
         /// The rat's method for handmade setup error
         /// </summary>
-        public void SetError(string textError)
-        {
-            unlockVisualValid = true;
-            IsValid = false;
-            TextError = textError;
-            ErrorChanged?.Invoke(this, ValidatorErrorTextArgs.Calc(true, textError));
-            OnPropertyChanged(nameof(IsVisualValid));
-        }
+        public abstract void SetError(string textError);
 
         /// <summary>
         /// Checks if the current value is different from the initialized value

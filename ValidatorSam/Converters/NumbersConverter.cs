@@ -65,7 +65,7 @@ namespace ValidatorSam.Converters
         {
             if (newValue is IFormattable fnewValue && validator.StringFormat != null)
             {
-                string raw = fnewValue.ToString(validator.StringFormat, validator._cultureInfo);
+                string raw = fnewValue.ToString(validator.StringFormat, validator.CultureInfo);
                 return ConverterResult.Success<T>(newValue, raw);
             }
             else

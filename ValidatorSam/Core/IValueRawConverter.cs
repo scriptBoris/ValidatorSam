@@ -24,6 +24,14 @@ namespace ValidatorSam.Core
         }
 
         /// <summary>
+        /// If Validator CultureInfo has been changed at runtime, the converter will 
+        /// know about the change in this method.
+        /// </summary>
+        virtual void OnCultureInfoChanged(CultureInfo? newCulture)
+        {
+        }
+
+        /// <summary>
         /// Converts user text input (RawValue) into to value of type (Value)
         /// </summary>
         /// <param name="rawValue">Current user input text</param>
