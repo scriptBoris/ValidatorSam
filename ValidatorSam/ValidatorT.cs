@@ -407,13 +407,7 @@ namespace ValidatorSam
                 }
             }
 
-            return new HandleRawResult<T>
-            {
-                PrepError = prepError,
-                NewRaw = newRaw,
-                NewValue = newValue,
-                ForceUpdateRaw = forceUpdateRaw,
-            };
+            return new HandleRawResult<T>(prepError, newRaw, newValue, forceUpdateRaw);
         }
 
         private ValidatorResult InternalCheckValid([AllowNull] T genericValue, bool useValidation, bool usePreprocessors)
@@ -520,13 +514,7 @@ namespace ValidatorSam
                 newValue = newest;
             }
 
-            return new HandleRawResult<T>
-            {
-                PrepError = prepError,
-                NewRaw = newRaw,
-                NewValue = newValue,
-                ForceUpdateRaw = forceUpdateRaw,
-            };
+            return new HandleRawResult<T>(prepError, newRaw, newValue, forceUpdateRaw);
         }
 
         /// <inheritdoc cref="Validator.SetValueAsRat(object?, RatModes)"/>

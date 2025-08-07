@@ -4,6 +4,9 @@ using System.Text;
 
 namespace ValidatorSam
 {
+    /// <summary>
+    /// Modes for set value 
+    /// </summary>
     [Flags]
     public enum RatModes
     {

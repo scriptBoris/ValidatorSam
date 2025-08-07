@@ -42,11 +42,7 @@ namespace ValidatorSam
         /// <param name="error">the message that will be displayed if the rule function returns false</param>
         public ValidatorBuilder<T> UsingRule(Func<T, bool> rule, string error)
         {
-            Validator._rules.Add(new RuleItem<T>
-            {
-                ErrorText = error,
-                Delegate = rule,
-            });
+            Validator._rules.Add(new RuleItem<T>(error, rule));
             return this;
         }
 
@@ -55,11 +51,7 @@ namespace ValidatorSam
         /// <param name="getError">dynamic function to get error text</param>
         public ValidatorBuilder<T> UsingRule(Func<T, bool> rule, Func<string> getError)
         {
-            Validator._rules.Add(new DynamicRuleItem<T>
-            {
-                DelegateGetError = getError,
-                Delegate = rule,
-            });
+            Validator._rules.Add(new DynamicRuleItem<T>(getError, rule));
             return this;
         }
 

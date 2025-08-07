@@ -9,7 +9,7 @@ namespace ValidatorSam
     /// <summary>
     /// Data wrapper for ValidatorValueListened
     /// </summary>
-    public struct ValidatorValueChangedArgs<T>
+    public readonly struct ValidatorValueChangedArgs<T>
     {
         internal ValidatorValueChangedArgs([AllowNull]T oldValue, [AllowNull] T newValue)
         {
@@ -21,13 +21,13 @@ namespace ValidatorSam
         /// Old validated value
         /// </summary>
         [AllowNull]
-        public T OldValue { get; private set; }
+        public T OldValue { get; }
 
         /// <summary>
         /// New validated value
         /// </summary>
         [AllowNull]
-        public T NewValue { get; private set; }
+        public T NewValue { get; }
     }
 #nullable disable
 }

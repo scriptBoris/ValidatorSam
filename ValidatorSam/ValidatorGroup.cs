@@ -16,6 +16,7 @@ namespace ValidatorSam
     {
         private readonly List<Validator> _validators;
 
+#pragma warning disable CS0067
         /// <summary>
         /// Implementation of INotifyDataErrorInfo interface
         /// </summary>
@@ -25,6 +26,7 @@ namespace ValidatorSam
         /// Implementation of INotifyPropertyChanged interface
         /// </summary>
         public event PropertyChangedEventHandler? PropertyChanged;
+#pragma warning restore CS0067
 
         /// <summary>
         /// Empty validator group

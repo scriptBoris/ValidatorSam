@@ -6,43 +6,40 @@ using System.Text;
 namespace ValidatorSam.Internal
 {
 #nullable enable
-    internal struct HandleRawResult<T>
+    internal readonly struct HandleRawResult<T>
     {
-        /// <inheritdoc cref="HandleRawResult.PrepError"/>
-        public ValidatorResult? PrepError { get; set; }
+        internal HandleRawResult(
+            ValidatorResult? prepError,
+            string? newRaw,
+            [AllowNull] T newValue,
+            bool forceUpdateRaw)
+        {
+            PrepError = prepError;
+            NewRaw = newRaw;
+            NewValue = newValue;
+            ForceUpdateRaw = forceUpdateRaw;
+        }
 
-        /// <inheritdoc cref="HandleRawResult.NewRaw"/>
-        public string? NewRaw { get; set; }
-
-        /// <inheritdoc cref="HandleRawResult.NewValue"/>
-        [AllowNull]
-        public T NewValue { get; set; }
-
-        /// <inheritdoc cref="HandleRawResult.ForceUpdateRaw"/>
-        public bool ForceUpdateRaw { get; set; }
-    }
-
-    internal struct HandleRawResult
-    {
         /// <summary>
         /// Ошибка препроцессора
         /// </summary>
-        public ValidatorResult? PrepError { get; set; }
+        internal ValidatorResult? PrepError { get; }
 
         /// <summary>
         /// Текстовое представление значения (RawValue)
         /// </summary>
-        public string? NewRaw { get; set; }
+        internal string? NewRaw { get; }
 
         /// <summary>
         /// Значение
         /// </summary>
-        public object? NewValue { get; set; }
+        [AllowNull]
+        internal T NewValue { get; }
 
         /// <summary>
         /// Нужно ли форсировано перерисовать RawValue
         /// </summary>
-        public bool ForceUpdateRaw { get; set; }
+        internal bool ForceUpdateRaw { get; }
     }
 #nullable disable
 }

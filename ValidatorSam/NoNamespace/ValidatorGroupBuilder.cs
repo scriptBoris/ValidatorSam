@@ -10,7 +10,11 @@ namespace ValidatorSam
     public class ValidatorGroupBuilder
     {
         private readonly LinkedList<Validator> _validators = new LinkedList<Validator>();
-        
+
+        /// <summary>
+        /// Adding a validator to a group
+        /// </summary>
+        /// <param name="validator"></param>
         public ValidatorGroupBuilder Include(Validator validator)
         {
             _validators.AddLast(validator);
@@ -23,6 +27,9 @@ namespace ValidatorSam
             return validatorGroup;
         }
 
+        /// <summary>
+        /// Allow to make autobuild
+        /// </summary>
         public static implicit operator ValidatorGroup(ValidatorGroupBuilder builder)
         {
             return builder.FinishBuild();

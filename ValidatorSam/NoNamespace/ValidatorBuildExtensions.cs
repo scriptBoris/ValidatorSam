@@ -28,12 +28,7 @@ namespace ValidatorSam
         public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilder<T?> self, Func<T, bool> rule, string error)
             where T : struct
         {
-            self.Validator._rules.Add(new RuleItem<T?>
-            {
-                IsSafeRule = true,
-                ErrorText = error,
-                Delegate = (x) => rule(x!.Value),
-            });
+            self.Validator._rules.Add(new RuleItem<T?>(error, (x) => rule(x!.Value), true));
             return self;
         }
 
@@ -41,12 +36,7 @@ namespace ValidatorSam
         public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilder<T?> self, Func<T, bool> rule, Func<string> getError)
             where T : struct
         {
-            self.Validator._rules.Add(new DynamicRuleItem<T?>
-            {
-                IsSafeRule = true,
-                DelegateGetError = getError,
-                Delegate = (x) => rule(x!.Value),
-            });
+            self.Validator._rules.Add(new DynamicRuleItem<T?>(getError, (x) => rule(x!.Value), true));
             return self;
         }
 
@@ -63,12 +53,7 @@ namespace ValidatorSam
         public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilder<T?> self, Func<T, bool> rule, string error)
             where T : class
         {
-            self.Validator._rules.Add(new RuleItem<T?>
-            {
-                IsSafeRule = true,
-                ErrorText = error,
-                Delegate = (x) => rule(x!),
-            });
+            self.Validator._rules.Add(new RuleItem<T?>(error, (x) => rule(x!), true));
             return self;
         }
 
@@ -76,12 +61,7 @@ namespace ValidatorSam
         public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilder<T?> self, Func<T, bool> rule, Func<string> getError)
             where T : class
         {
-            self.Validator._rules.Add(new DynamicRuleItem<T?>
-            {
-                IsSafeRule = true,
-                DelegateGetError = getError,
-                Delegate = (x) => rule(x!),
-            });
+            self.Validator._rules.Add(new DynamicRuleItem<T?>(getError, (x) => rule(x!), true));
             return self;
         }
 

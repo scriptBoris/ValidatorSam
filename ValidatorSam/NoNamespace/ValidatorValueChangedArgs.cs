@@ -1,18 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace ValidatorSam
 {
-    public struct ValidatorValueChangedArgs
+    /// <summary>
+    /// Data container
+    /// </summary>
+    public readonly struct ValidatorValueChangedArgs
     {
-        public ValidatorValueChangedArgs(object oldValue, object newValue)
+        internal ValidatorValueChangedArgs(object oldValue, object newValue)
         {
             OldValue = oldValue;
             NewValue = newValue;
         }
 
-        public object OldValue { get; private set; }
-        public object NewValue { get; private set; }
+        /// <summary>
+        /// Old value
+        /// </summary>
+        [AllowNull]
+        public object OldValue { get; }
+
+        /// <summary>
+        /// New value
+        /// </summary>
+        [AllowNull] 
+        public object NewValue { get; }
     }
 }

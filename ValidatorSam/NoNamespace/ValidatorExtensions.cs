@@ -5,8 +5,14 @@ using System.Text;
 #nullable enable
 namespace ValidatorSam
 {
+    /// <summary>
+    /// Extensions methods for ValidatorSam
+    /// </summary>
     public static class ValidatorExtensions
     {
+        /// <summary>
+        /// Trying to get value from validator
+        /// </summary>
         public static T ValueOrDefault<T>(this Validator<T?> validator)
             where T : struct
         {
@@ -16,6 +22,10 @@ namespace ValidatorSam
             return validator.Value.Value;
         }
 
+        /// <summary>
+        /// Executes <see cref="Validator.CheckValid"/> for each validator, and if 
+        /// any returns an error, then method returns False
+        /// </summary>
         public static bool CheckSuccess(this Validator[] validators)
         {
             var result = new ValidatorResult(true, null, "none");
@@ -55,6 +65,10 @@ namespace ValidatorSam
             return isValid;
         }
 
+        /// <summary>
+        /// Executes <see cref="Validator.CheckValid"/> for each validator and 
+        /// returns the result of the first validation failure, or <c>null</c> if all validators pass.
+        /// </summary>
         public static ValidatorResult? FirstInvalidOrDefault(this Validator[] validators)
         {
             ValidatorResult? result = null;
@@ -69,6 +83,12 @@ namespace ValidatorSam
             return result;
         }
 
+        /// <summary>
+        /// Executes <see cref="Validator.CheckValid"/> for each validator and 
+        /// returns the result of the first validation failure, or 
+        /// empty result with <see cref="ValidatorResult.IsValid"/> as true
+        /// if all validators pass.
+        /// </summary>
         [Obsolete("Please use FirstInvalidOrDefault")]
         public static ValidatorResult FirstInvalid(this Validator[] validators)
         {
