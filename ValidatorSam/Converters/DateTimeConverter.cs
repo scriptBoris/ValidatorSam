@@ -39,7 +39,7 @@ namespace ValidatorSam.Converters
         }
 
         /// <inheritdoc/>
-        public ConverterResult<DateTime> ValueToRaw([AllowNull] DateTime newValue, [AllowNull] DateTime oldValue, Validator validator)
+        public ConverterResult<DateTime> ValueToRaw(DateTime newValue, Validator validator)
         {
             if (validator.StringFormat != null)
             {

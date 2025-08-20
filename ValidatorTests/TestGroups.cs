@@ -11,10 +11,10 @@ namespace ValidatorTests
     public class TestGroups
     {
         public Validator<string> Test1 => Validator<string>.Build()
-            .UsingRule(x => x.Length >= 2, "Error");
+            .UsingRule(x => x.Value.Length >= 2, "Error");
 
         public Validator<string> Test2 => Validator<string>.Build()
-            .UsingRule(x => x.Length >= 5, "Error");
+            .UsingRule(x => x.Value.Length >= 5, "Error");
 
         public ValidatorGroup TestGroup => ValidatorGroup.Build()
             .Include(Test1)

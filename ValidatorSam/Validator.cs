@@ -30,6 +30,11 @@ namespace ValidatorSam
     public delegate PreprocessResult<T> PreprocessorHandler<T>(ValidatorPreprocessArgs<T> args);
 
     /// <summary>
+    /// Delegate for rules
+    /// </summary>
+    public delegate bool RuleHandler<T>(RuleArgs<T> args);
+
+    /// <summary>
     /// Base class validator
     /// </summary>
     public abstract class Validator : INotifyPropertyChanged
@@ -38,6 +43,7 @@ namespace ValidatorSam
         internal bool _isEnabled = true;
         internal bool _isGenericStringType;
         internal string? _customName;
+        internal object? _payload;
         private string? _textError;
         private bool _isValid;
         private string _name = "undefined";
@@ -85,7 +91,7 @@ namespace ValidatorSam
         /// - int: write number of members in the family <br/>
         /// - double: manual input of the weight of the load
         /// </summary>
-        public abstract string? RawValue { get; set; }
+        public abstract string RawValue { get; set; }
         
         /// <summary>
         /// The value that was specified during Building of the validator
@@ -111,6 +117,19 @@ namespace ValidatorSam
 
                 if (!value)
                     ErrorChanged?.Invoke(this, ValidatorErrorTextArgs.Hide);
+            }
+        }
+
+        /// <summary>
+        /// Payload that can be used for different purposes
+        /// </summary>
+        public object? Payload 
+        { 
+            get => _payload;
+            set
+            {
+                _payload = value;
+                OnPropertyChanged(nameof(Payload));
             }
         }
 

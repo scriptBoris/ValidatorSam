@@ -23,20 +23,32 @@ namespace ValidatorSam
         /// Return <c>false</c> for mark this Validator property IsValid as false
         /// </summary>
         /// <param name="self">builder instance</param>
-        /// <param name="rule">function that will be called when a new value (not null) is received. If false is returned, an error will be set</param>
+        /// <param name="safeRule">function that will be called when a new value (not null) is received. If false is returned, an error will be set</param>
         /// <param name="error">the message that will be displayed if the rule function returns false</param>
-        public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilder<T?> self, Func<T, bool> rule, string error)
+        public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilder<T?> self, RuleHandler<T> safeRule, string error)
             where T : struct
         {
-            self.Validator._rules.Add(new RuleItem<T?>(error, (x) => rule(x!.Value), true));
+            RuleHandler<T?> unsafeRule = (args) =>
+            {
+                var args2 = new RuleArgs<T>(args.Value!.Value, args.RawValue, args.Validator);
+                return safeRule(args2);
+            };
+
+            self.Validator._rules.Add(new RuleItem<T?>(error, unsafeRule, true));
             return self;
         }
 
-        /// <inheritdoc cref="UsingSafeRule{T}(ValidatorBuilder{T?}, Func{T, bool}, string)"/>
-        public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilder<T?> self, Func<T, bool> rule, Func<string> getError)
+        /// <inheritdoc cref="UsingSafeRule{T}(ValidatorBuilder{T?}, RuleHandler{T}, string)"/>
+        public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilder<T?> self, RuleHandler<T> safeRule, Func<string> getError)
             where T : struct
         {
-            self.Validator._rules.Add(new DynamicRuleItem<T?>(getError, (x) => rule(x!.Value), true));
+            RuleHandler<T?> unsafeRule = (args) =>
+            {
+                var args2 = new RuleArgs<T>(args.Value!.Value, args.RawValue, args.Validator);
+                return safeRule(args2);
+            };
+
+            self.Validator._rules.Add(new DynamicRuleItem<T?>(getError, unsafeRule, true));
             return self;
         }
 
@@ -48,17 +60,17 @@ namespace ValidatorSam
         /// Return <c>false</c> for mark this Validator property IsValid as false
         /// </summary>
         /// <param name="self">builder instance</param>
-        /// <param name="rule">function that will be called when a new value (not null) is received. If false is returned, an error will be set</param>
+        /// <param name="safeRule">function that will be called when a new value (not null) is received. If false is returned, an error will be set</param>
         /// <param name="error">the message that will be displayed if the rule function returns false</param>
-        public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilder<T?> self, Func<T, bool> rule, string error)
+        public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilder<T?> self, RuleHandler<T> safeRule, string error)
             where T : class
         {
-            self.Validator._rules.Add(new RuleItem<T?>(error, (x) => rule(x!), true));
+            self.Validator._rules.Add(new RuleItem<T?>(error, (x) => safeRule(x!), true));
             return self;
         }
 
-        /// <inheritdoc cref="UsingSafeRule{T}(ValidatorBuilder{T?}, Func{T, bool}, string)"/>
-        public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilder<T?> self, Func<T, bool> rule, Func<string> getError)
+        /// <inheritdoc cref="UsingSafeRule{T}(ValidatorBuilder{T?}, RuleHandler{T}, string)"/>
+        public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilder<T?> self, RuleHandler<T> rule, Func<string> getError)
             where T : class
         {
             self.Validator._rules.Add(new DynamicRuleItem<T?>(getError, (x) => rule(x!), true));

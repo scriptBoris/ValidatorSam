@@ -11,7 +11,7 @@ namespace ValidatorTests
     public class TestVisualValid
     {
         public Validator<int> TestValidator1 => Validator<int>.Build()
-            .UsingRule(x => x > 0, "ERROR");
+            .UsingRule(x => x.Value > 0, "ERROR");
 
         // Изначально IsVisualValid должен быть true
         [TestMethod]
@@ -40,7 +40,7 @@ namespace ValidatorTests
         // так как используется значение init: -1
         public Validator<int> TestValidator2 => Validator<int>.Build()
             .UsingValue(-1)
-            .UsingRule(x => x > 0, "ERROR");
+            .UsingRule(x => x.Value > 0, "ERROR");
         [TestMethod]
         public void CheckWillFalse()
         {

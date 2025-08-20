@@ -69,7 +69,7 @@ namespace ValidatorTests
         // Даже если инициализированное значение имеет валидные данные
         public Validator<string> DefaultName => Validator<string>.Build()
             .UsingValue("valid")
-            .UsingRule(x => x == "valid", "ERROR");
+            .UsingRule(x => x.Value == "valid", "ERROR");
         [TestMethod]
         public void CheckDefaultIsValid()
         {
@@ -82,7 +82,7 @@ namespace ValidatorTests
         // имеет невалидные данные
         public Validator<string> DefaultIsVisualValid => Validator<string>.Build()
             .UsingValue("invalid")
-            .UsingRule(x => x == "valid", "ERROR");
+            .UsingRule(x => x.Value == "valid", "ERROR");
         [TestMethod]
         public void CheckDefaultIsVisualValid()
         {

@@ -61,7 +61,7 @@ namespace ValidatorSam.Converters
         }
 
         /// <inheritdoc/>
-        public ConverterResult<T> ValueToRaw([AllowNull] T newValue, [AllowNull] T oldValue, Validator validator)
+        public ConverterResult<T> ValueToRaw(T newValue, Validator validator)
         {
             if (newValue is IFormattable fnewValue && validator.StringFormat != null)
             {

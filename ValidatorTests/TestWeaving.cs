@@ -31,10 +31,10 @@ namespace ValidatorTests
 
         // тест на singleton для ValidatorGroup
         public Validator<string> Test3 => Validator<string>.Build()
-            .UsingRule(x => x.Length >= 5, "Error");
+            .UsingRule(x => x.Value.Length >= 5, "Error");
 
         public Validator<string> Test4 => Validator<string>.Build()
-            .UsingRule(x => x.Length >= 10, "Error");
+            .UsingRule(x => x.Value.Length >= 10, "Error");
 
         public ValidatorGroup TestGroup => ValidatorGroup.Build()
             .Include(Test3)

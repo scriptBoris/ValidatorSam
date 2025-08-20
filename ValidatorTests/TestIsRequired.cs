@@ -69,5 +69,21 @@ namespace ValidatorTests
             AgreementTerms2.CheckValid();
             Assert.AreEqual(true, AgreementTerms2.IsValid);
         }
+
+        // Тест когда требуется IsRequired, но с "сервера приходит пустые данные"
+        public Validator<string> OrderCode => Validator<string>.Build()
+            .UsingRequired();
+        [TestMethod]
+        public void InitValueWithIsRequired()
+        {
+            bool error = false;
+            OrderCode.ErrorChanged += (o, e) =>
+            {
+                error = e.IsShow;
+            };
+
+            OrderCode.SetValueAsRat(null, RatModes.InitValue | RatModes.SkipPreprocessors | RatModes.SkipValidation);
+            Assert.AreEqual(false, error);
+        }
     }
 }

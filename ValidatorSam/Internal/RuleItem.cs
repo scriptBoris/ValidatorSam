@@ -7,20 +7,20 @@ namespace ValidatorSam.Internal
 {
     internal interface IRuleItem<T>
     {
-        Func<T, bool> Delegate { get; }
+        RuleHandler<T> Delegate { get; }
         bool IsSafeRule { get; }
         string GetError();
     }
 
     internal class RuleItem<T> : IRuleItem<T>
     {
-        internal RuleItem(string errorText, Func<T, bool> rule)
+        internal RuleItem(string errorText, RuleHandler<T> rule)
         {
             ErrorText = errorText;
             Delegate = rule;
         }
 
-        internal RuleItem(string errorText, Func<T, bool> rule, bool isSafeRule)
+        internal RuleItem(string errorText, RuleHandler<T> rule, bool isSafeRule)
         {
             ErrorText = errorText;
             Delegate = rule;
@@ -28,7 +28,7 @@ namespace ValidatorSam.Internal
         }
 
         internal string ErrorText { get; }
-        public Func<T, bool> Delegate { get; }
+        public RuleHandler<T> Delegate { get; }
         public bool IsSafeRule { get; }
 
         public string GetError() => ErrorText ?? "";
@@ -36,13 +36,13 @@ namespace ValidatorSam.Internal
 
     internal class DynamicRuleItem<T> : IRuleItem<T>
     {
-        internal DynamicRuleItem(Func<string> geterror, Func<T, bool> delegateGetError)
+        internal DynamicRuleItem(Func<string> geterror, RuleHandler<T> delegateGetError)
         {
             DelegateGetError = geterror;
             Delegate = delegateGetError;
         }
 
-        internal DynamicRuleItem(Func<string> geterror, Func<T, bool> delegateGetError, bool isSafe)
+        internal DynamicRuleItem(Func<string> geterror, RuleHandler<T> delegateGetError, bool isSafe)
         {
             DelegateGetError = geterror;
             Delegate = delegateGetError;
@@ -50,7 +50,7 @@ namespace ValidatorSam.Internal
         }
 
         internal Func<string> DelegateGetError { get; }
-        public Func<T, bool> Delegate { get; }
+        public RuleHandler<T> Delegate { get; }
         public bool IsSafeRule { get; }
 
         public string GetError() => DelegateGetError();

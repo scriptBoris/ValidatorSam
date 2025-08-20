@@ -11,7 +11,7 @@ namespace ValidatorTests
     public class TestSimpleRules
     {
         public Validator<int> Property1 => Validator<int>.Build()
-            .UsingRule(x => x > 10, "valus is less than 10");
+            .UsingRule(x => x.Value > 10, "valus is less than 10");
 
         [TestMethod]
         public void TestRule()
@@ -39,7 +39,7 @@ namespace ValidatorTests
 
         // Тест на проверку получения статического текста ошибки
         public Validator<string> EmailStatic => Validator<string>.Build()
-            .UsingRule(x => x == "test@email.com", "static text error");
+            .UsingRule(x => x.Value == "test@email.com", "static text error");
         [TestMethod]
         public void TestStaticTextError()
         {
@@ -49,7 +49,7 @@ namespace ValidatorTests
 
         // Тест на проверку получения динамического текста ошибки
         public Validator<string> EmailDynamic => Validator<string>.Build()
-            .UsingRule(x => x == "test@email.com", () => "dynamic error");
+            .UsingRule(x => x.Value == "test@email.com", () => "dynamic error");
         [TestMethod]
         public void TestDynamicTextError()
         {
@@ -59,7 +59,7 @@ namespace ValidatorTests
 
         // Тест на проверку получения динамического текста ошибки у SafeRule
         public Validator<string?> EmailDynamicSafe => Validator<string?>.Build()
-            .UsingSafeRule(x => x == "test@email.com", () => "dynamic error");
+            .UsingSafeRule(x => x.Value == "test@email.com", () => "dynamic error");
         [TestMethod]
         public void TestSafeDynamicTextError()
         {

@@ -9,7 +9,7 @@ namespace ValidatorTests
         // Тест на указывание InitValue как изначально не валидное
         // и игнорирование правил
         public Validator<int?> UserAge => Validator<int?>.Build()
-            .UsingRule(x => x >= 18, "User must be of legal age")
+            .UsingRule(x => x.Value >= 18, "User must be of legal age")
             .UsingRequired();
         
         [TestMethod]
@@ -40,7 +40,7 @@ namespace ValidatorTests
         // Тест на указывание InitValue как изначально не валидное,
         // игнорирование правил и препроцессоров
         public Validator<int?> UserAge2 => Validator<int?>.Build()
-            .UsingRule(x => x >= 18, "User must be of legal age")
+            .UsingRule(x => x.Value >= 18, "User must be of legal age")
             .UsingLimitations(0, 100)
             .UsingRequired();
 

@@ -48,7 +48,7 @@ namespace ValidatorSam
         }
 
         /// <inheritdoc cref="Validator.RawValue"/>
-        public override string? RawValue
+        public override string RawValue
         {
             get => GetRawValue();
             set => SetRawValue(value);
@@ -114,7 +114,7 @@ namespace ValidatorSam
         /// <inheritdoc/>
         public override ValidatorResult CheckValid()
         {
-            var res = InternalCheckValid(Value, true, true);
+            var res = InternalCheckValid(Value, RawValue ?? "", true, true);
             _isUnlockedVisualValid = true;
             IsValid = res.IsValid;
             TextError = res.TextError;
@@ -146,7 +146,7 @@ namespace ValidatorSam
         }
 
         /// <inheritdoc/>
-        private string? GetRawValue()
+        private string GetRawValue()
         {
             if (_rawValue != null)
             {
@@ -165,7 +165,7 @@ namespace ValidatorSam
                 }
             }
 
-            return null;
+            return "";
         }
 
         /// <summary>
@@ -241,28 +241,20 @@ namespace ValidatorSam
             return isEmpty;
         }
 
-        /// <inheritdoc/>
-        protected ValidatorResult ExecuteRule([AllowNull] T value, int ruleId)
+        private ValidatorResult ExecuteRule(RuleArgs<T> args, int ruleId)
         {
-            // Ugly construction :Q
-            // Compatability NET2.1
-            if (value is T t) { }
-            else
-            {
-                if (_isGenericStringType && "" is T st)
-                    t = st;
-                else
-                    t = default;
-            }
-
             var rule = _rules[ruleId];
             bool isValid;
 
-            if (rule.IsSafeRule && t == null)
+            if (rule.IsSafeRule && args.Value == null)
+            {
                 isValid = true;
+            }
             else
+            {
                 // If programmer dont catch null, then rule-delegate can throw NullRefException
-                isValid = rule.Delegate.Invoke(t!);
+                isValid = rule.Delegate.Invoke(args);
+            }
 
             string? error = !isValid ? rule.GetError() : null;
             return new ValidatorResult(isValid, error, Name);
@@ -338,7 +330,7 @@ namespace ValidatorSam
                 if (prepError != null)
                     res = prepError.Value;
                 else
-                    res = InternalCheckValid(_value, true, false);
+                    res = InternalCheckValid(_value, _rawValue ?? "", true, false);
 
                 bool oldValid = IsValid;
                 string? oldTextError = TextError;
@@ -410,7 +402,7 @@ namespace ValidatorSam
             return new HandleRawResult<T>(prepError, newRaw, newValue, forceUpdateRaw);
         }
 
-        private ValidatorResult InternalCheckValid([AllowNull] T genericValue, bool useValidation, bool usePreprocessors)
+        private ValidatorResult InternalCheckValid([AllowNull] T genericValue, string rawValue, bool useValidation, bool usePreprocessors)
         {
             bool isValid = true;
             string? textError = null;
@@ -459,9 +451,10 @@ namespace ValidatorSam
 
             if (useValidation)
             {
+                var args = new RuleArgs<T>(genericValue!, rawValue, this);
                 for (int i = 0; i < RuleCount; i++)
                 {
-                    var ruleResult = ExecuteRule(genericValue, i);
+                    var ruleResult = ExecuteRule(args, i);
                     if (!ruleResult.IsValid)
                     {
                         isValid = false;
@@ -487,9 +480,9 @@ namespace ValidatorSam
 
             bool forceUpdateRaw = false;
             var converter = _defaultCastConverter;
-            if (converter != null)
+            if (converter != null && newest != null)
             {
-                var result = converter.ValueToRaw(newest, old, this);
+                var result = converter.ValueToRaw(newest, this);
                 switch (result.ResultType)
                 {
                     case ConverterResultType.Success:

@@ -44,9 +44,8 @@ namespace ValidatorSam.Core
         /// Converts value of type (Value) into user text input (RawValue)
         /// </summary>
         /// <param name="newValue">New value</param>
-        /// <param name="oldValue">Old value</param>
         /// <param name="validator">Invoker.</param>
-        ConverterResult<T> ValueToRaw([AllowNull]T newValue, [AllowNull]T oldValue, Validator validator);
+        ConverterResult<T> ValueToRaw(T newValue, Validator validator);
     }
 
     /// <summary>
@@ -155,7 +154,7 @@ namespace ValidatorSam.Core
         /// <param name="errorText">required error text</param>
         /// <param name="value">modificated Value</param>
         /// <param name="rawValue">modificated RawValue</param>
-        public static ConverterResult<T> Error<T>(string errorText, T value, ReadOnlySpan<char> rawValue)
+        public static ConverterResult<T> Error<T>(string errorText, [AllowNull] T value, ReadOnlySpan<char> rawValue)
         {
             return new ConverterResult<T>
             {

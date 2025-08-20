@@ -40,16 +40,16 @@ namespace ValidatorSam
         /// </summary>
         /// <param name="rule">function that will be called when a new value is received. If false is returned, an error will be set</param>
         /// <param name="error">the message that will be displayed if the rule function returns false</param>
-        public ValidatorBuilder<T> UsingRule(Func<T, bool> rule, string error)
+        public ValidatorBuilder<T> UsingRule(RuleHandler<T> rule, string error)
         {
             Validator._rules.Add(new RuleItem<T>(error, rule));
             return this;
         }
 
-        /// <inheritdoc cref="UsingRule(Func{T, bool}, string)"/>
+        /// <inheritdoc cref="UsingRule(RuleHandler{T}, string)"/>
         /// <param name="rule"></param>
         /// <param name="getError">dynamic function to get error text</param>
-        public ValidatorBuilder<T> UsingRule(Func<T, bool> rule, Func<string> getError)
+        public ValidatorBuilder<T> UsingRule(RuleHandler<T> rule, Func<string> getError)
         {
             Validator._rules.Add(new DynamicRuleItem<T>(getError, rule));
             return this;
@@ -156,6 +156,24 @@ namespace ValidatorSam
             return this;
         }
 
+        /// <summary>
+        /// Payload
+        /// </summary>
+        public ValidatorBuilder<T> UsingPayload(object payload)
+        {
+            Validator._payload = payload;
+            return this;
+        }
+
+        /// <summary>
+        /// Using converter
+        /// </summary>
+        public ValidatorBuilder<T> UsingConverter(IValueRawConverter<T> converter)
+        {
+            Validator._defaultCastConverter = converter;
+            return this;
+        }
+
         private void ResolveAutoCast(Type type)
         {
             var nullableGenericType = Nullable.GetUnderlyingType(type);
@@ -207,8 +225,11 @@ namespace ValidatorSam
         /// <param name="builder">Validator constructor</param>
         public static implicit operator Validator<T>(ValidatorBuilder<T> builder)
         {
-            var genericType = typeof(T);
-            builder.ResolveAutoCast(genericType);
+            if (builder.Validator._defaultCastConverter == null)
+            {
+                var genericType = typeof(T);
+                builder.ResolveAutoCast(genericType);
+            }
 
             var initValue = builder.Validator.InitValue;
             var hrw = builder.Validator.HandleRawDefault(default, initValue);
