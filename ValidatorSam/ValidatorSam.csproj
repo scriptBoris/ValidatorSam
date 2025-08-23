@@ -12,6 +12,7 @@
 		<PackageTags>ILWeaving, Fody, Cecil, AOP, Validation, Validator, MVVM</PackageTags>
 		<Version>1.7.0-beta3</Version>
 		<WeaverPropsFile>$(MSBuildThisFileDirectory)Weaver.props</WeaverPropsFile>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<ItemGroup>

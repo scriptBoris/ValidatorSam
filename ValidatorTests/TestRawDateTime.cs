@@ -142,10 +142,37 @@ namespace ValidatorTests
         }
 
         [TestMethod]
+        public void NoPassBadChars()
+        {
+            DateWin.RawValue = "ы";
+            Assert.AreEqual("", DateWin.RawValue);
+            Assert.AreEqual(default, DateWin.Value);
+            Assert.IsFalse(DateWin.IsValid);
+        }
+
+        [TestMethod]
         public void UserForgetInputTime()
         {
             DateWin.RawValue = "2001/11/12";
             Assert.AreEqual("2001/11/12", DateWin.RawValue);
+            Assert.AreEqual(default, DateWin.Value);
+            Assert.IsFalse(DateWin.IsValid);
+        }
+
+        [TestMethod]
+        public void GoodInputDateTimeButEmptyLongTail()
+        {
+            DateWin.RawValue = "2001/11/12приветмир!как дела      хорошо? Да";
+            Assert.AreEqual("2001/11/12", DateWin.RawValue);
+            Assert.AreEqual(default, DateWin.Value);
+            Assert.IsFalse(DateWin.IsValid);
+        }
+
+        [TestMethod]
+        public void BadInputLongAndLongInput()
+        {
+            DateWin.RawValue = "LoremImpumRandomWordAndDogsAndCats I LOVE Chikens and coca-cola. IHate frgomhed and hoboaowao";
+            Assert.AreEqual("", DateWin.RawValue);
             Assert.AreEqual(default, DateWin.Value);
             Assert.IsFalse(DateWin.IsValid);
         }

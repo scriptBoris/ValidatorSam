@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Text;
 using ValidatorSam.Core;
+using ValidatorSam.Internal;
 
 namespace ValidatorSam.Converters
 {
@@ -12,8 +16,6 @@ namespace ValidatorSam.Converters
     /// </summary>
     public abstract class DateTimeBaseConverter
     {
-        private Dictionary<int, char> _allowSpecialChars = new Dictionary<int, char>();
-
         /// <summary>
         /// Default StringFormat
         /// </summary>
@@ -25,7 +27,14 @@ namespace ValidatorSam.Converters
         /// <exception cref="NotSupportedException">Not supported mask/format</exception>
         protected void InitStringFormat(string? format)
         {
-            switch (format)
+        }
+
+        /// <summary>
+        /// Universal
+        /// </summary>
+        public ConverterResult<DateTime?> MasterParse(ReadOnlySpan<char> rawValue, CultureInfo culture, string stringFormat)
+        {
+            switch (stringFormat)
             {
                 case "d": // short date
                 case "D": // long date
@@ -46,49 +55,13 @@ namespace ValidatorSam.Converters
                 case "s": // sortable ISO-like
                 case "u": // universal (sortable)
                 case "U": // full date/time (UTC)
-                    throw new NotSupportedException($"The StringFormat \"{format}\" is not supported");
+                    throw new NotSupportedException($"The StringFormat \"{stringFormat}\" is not supported");
                 default:
                     break;
             }
 
-            _allowSpecialChars.Clear();
-
-            string f = format ?? DEFAULT_DATEFORMAT;
-            for (int i = 0; i < f.Length; i++)
-            {
-                char c = f[i];
-                switch (c)
-                {
-                    case 'd':
-                    case 'D':
-                    case 'm':
-                    case 'M':
-                    case 'y':
-                    case 'Y':
-                    case 'h':
-                    case 'H':
-                    case 's':
-                    case 'S':
-                        continue;
-                    default:
-                        break;
-                }
-
-                _allowSpecialChars.TryAdd(c, c);
-            }
-        }
-
-        /// <summary>
-        /// Universal
-        /// </summary>
-        public ConverterResult<DateTime?> MasterParse(ReadOnlySpan<char> rawValue, CultureInfo culture, ReadOnlySpan<char> stringFormat)
-        {
-            int year = 0;
-            int month = 0;
-            int day = 0;
-            int hour = 0;
-            int minute = 0;
-            int sec = 0;
+            var bdate = new BundleDate();
+            var sb = new StackStringBuilder50();
 
             foreach (var item in stringFormat)
             {
@@ -96,41 +69,46 @@ namespace ValidatorSam.Converters
                 {
                     case 'y':
                     case 'Y':
-                        year = -1;
+                        bdate.year = -1;
                         break;
                     case 'M':
-                        month = -1;
+                        bdate.month = -1;
                         break;
                     case 'd':
                     case 'D':
-                        day = -1;
+                        bdate.day = -1;
                         break;
                     case 'h':
                     case 'H':
-                        hour = -1;
+                        bdate.hour = -1;
                         break;
                     case 'm':
-                        minute = -1;
+                        bdate.minute = -1;
                         break;
                     case 's':
-                        sec = -1;
+                        bdate.sec = -1;
                         break;
                     default:
                         break;
                 }
             }
-
-            var sb = new StringBuilder(rawValue.Length);
-            ReadInputAndLittleParse(rawValue, stringFormat, sb, ref year, ref month, ref day, ref hour, ref minute, ref sec);
-            return ParseInt(year, month, day, hour, minute, sec, sb, culture);
+            
+            ReadInputAndLittleParse(rawValue, stringFormat, ref sb, ref bdate);
+            return ParseInt(culture, ref sb, ref bdate);
         }
 
         /// <summary>
         /// Post-parser
         /// </summary>
-        protected ConverterResult<DateTime?> ParseInt(int year, int month, int day, int hour, int minute, int sec, StringBuilder sb, CultureInfo culture)
+        internal ConverterResult<DateTime?> ParseInt(CultureInfo culture, ref StackStringBuilder50 rawStringBuilder, ref BundleDate bdate)
         {
-            string raw = sb.ToString();
+            string raw = rawStringBuilder.ToString();
+            int year = bdate.year;
+            int month = bdate.month;
+            int day = bdate.day;
+            int hour = bdate.hour;
+            int minute = bdate.minute;
+            int sec = bdate.sec;
 
             if (year <= 0 || year > 9999)
                 return ConverterResult.Error<DateTime?>("Invalid date", null, raw);
@@ -175,73 +153,55 @@ namespace ValidatorSam.Converters
         /// <summary>
         /// Very rough parser
         /// </summary>
-        protected void ReadInputAndLittleParse(ReadOnlySpan<char> input, ReadOnlySpan<char> StringFormat, StringBuilder output,
-            ref int year, ref int month, ref int day,
-            ref int hour, ref int minute, ref int sec)
+        internal void ReadInputAndLittleParse(ReadOnlySpan<char> input, ReadOnlySpan<char> StringFormat,
+            ref StackStringBuilder50 outputRaw,
+            ref BundleDate result)
         {
-            var readyToParse = new StringBuilder();
-            var readyToParseType = MaskCharType.None;
+            var readyToParse = new ChainBuilder();
             int maskoffset = 0;
 
-            for (int i = 0; i < input.Length; i++)
+            char inputChar;
+            var maskCharType = MaskCharType.None;
+            int endloop = input.Length;
+            for (int i = 0; i < endloop; i++)
             {
-                char inputChar = input[i];
-                char maskChar;
+                inputChar = input[i];
 
+                char maskChar;
                 if (i + maskoffset < StringFormat.Length)
                     maskChar = StringFormat[i + maskoffset];
                 else
                     maskChar = default;
 
-                var mType = CheckIsMaskChar(maskChar);
-                bool isMask = mType != MaskCharType.None;
+                maskCharType = GetMaskCharType(maskChar);
+                bool isMaskDigit = maskCharType != MaskCharType.None;
+                bool isMaskSeparate = maskCharType == MaskCharType.None;
                 bool isDigit = char.IsDigit(inputChar);
-                var inputType = MaskCharType.None;
 
                 // введенная цифра попала в маску (Y, M, D, etc...)
-                if (isMask && isDigit)
+                if (isMaskDigit && isDigit)
                 {
-                    output.Append(inputChar);
-                    inputType = mType;
+                    outputRaw.Append(inputChar);
+                    readyToParse.PushNumberChain(inputChar, maskCharType, ref result);
                 }
                 // введенный символ попал в спецсимвол маски (lika a dots, comma, double dots and etc)
                 else if (inputChar == maskChar)
                 {
                     // на всякий случай проверяем, а не является ли введенный символ
                     // знаком маски (например "d")
-                    if (CheckIsMaskChar(inputChar) == MaskCharType.None)
-                        output.Append(inputChar);
+                    if (GetMaskCharType(inputChar) == MaskCharType.None)
+                    {
+                        outputRaw.Append(inputChar);
+                        readyToParse.FinalizingNumberChain(MaskCharType.None, ref result);
+                    }
                 }
                 else if (readyToParse.Length > 0)
                 {
-                    // если юзер ввел спец символ, но маска ожидает цифру,
-                    // то ставим спецсимвол и скипаем до следующей группы
-                    if (isMask && !isDigit && SpecialCharMask(inputChar))
-                    {
-                        output.Append(inputChar);
-                        maskoffset++;
-
-                        // скип
-                        char nextChar;
-                        while (true)
-                        {
-                            int nextIndex = i + maskoffset;
-                            if (nextIndex < StringFormat.Length)
-                                nextChar = StringFormat[nextIndex];
-                            else
-                                break;
-
-                            if (CheckIsMaskChar(nextChar) == mType)
-                                maskoffset++;
-                            else
-                                break;
-                        }
-                    }
                     // если юзер ввел цифру, вместо ожидаемой в маске спец символа
                     // то ставим ожидаемый спец символ(ы), а потом цифру
-                    else if (!isMask && isDigit)
+                    if (!isMaskDigit && isDigit)
                     {
-                        output.Append(maskChar);
+                        outputRaw.Append(maskChar);
                         maskoffset++;
 
                         // скип
@@ -254,9 +214,9 @@ namespace ValidatorSam.Converters
                             else
                                 break;
 
-                            if (CheckIsMaskChar(nextMaskChar) == MaskCharType.None)
+                            if (GetMaskCharType(nextMaskChar) == MaskCharType.None)
                             {
-                                output.Append(nextMaskChar);
+                                outputRaw.Append(nextMaskChar);
                                 maskoffset++;
                             }
                             else
@@ -271,84 +231,54 @@ namespace ValidatorSam.Converters
                             break;
                         }
 
-                        inputType = CheckIsMaskChar(nextMaskChar);
-                        output.Append(inputChar);
+                        var inputType = GetMaskCharType(nextMaskChar);
+                        outputRaw.Append(inputChar);
+                        readyToParse.PushNumberChain(inputChar, inputType, ref result);
                     }
-                }
-
-                if (inputType != MaskCharType.None)
-                {
-                    if (readyToParseType == inputType || readyToParseType == MaskCharType.None)
+                    // если юзер ввел спец символ, но маска ожидает цифру,
+                    // то ставим спецсимвол и скипаем до следующей группы
+                    else if (isMaskDigit && !isDigit)
                     {
-                        readyToParse.Append(inputChar);
-                        readyToParseType = inputType;
+
+                        // на всякий случай проверяем, а не является ли введенный символ
+                        // знаком маски (например "d")
+                        if (GetMaskCharType(inputChar) != MaskCharType.None)
+                            continue;
+
+                        outputRaw.Append(inputChar);
+                        maskoffset++;
+
+                        // скип
+                        char nextChar;
+                        while (true)
+                        {
+                            int nextIndex = i + maskoffset;
+                            if (nextIndex < StringFormat.Length)
+                                nextChar = StringFormat[nextIndex];
+                            else
+                                break;
+
+                            if (GetMaskCharType(nextChar) == maskCharType)
+                                maskoffset++;
+                            else
+                                break;
+                        }
                     }
                     else
                     {
-                        string value = readyToParse.ToString();
-                        if (int.TryParse(value, out int parseValue))
-                        {
-                            switch (readyToParseType)
-                            {
-                                case MaskCharType.Year:
-                                    year = parseValue;
-                                    break;
-                                case MaskCharType.Month:
-                                    month = parseValue;
-                                    break;
-                                case MaskCharType.Day:
-                                    day = parseValue;
-                                    break;
-                                case MaskCharType.Hour:
-                                    hour = parseValue;
-                                    break;
-                                case MaskCharType.Minute:
-                                    minute = parseValue;
-                                    break;
-                                case MaskCharType.Second:
-                                    sec = parseValue;
-                                    break;
-                            }
-                        }
-                        readyToParse.Clear();
-                        readyToParse.Append(inputChar);
-                        readyToParseType = inputType;
+                        readyToParse.FinalizingNumberChain(maskCharType, ref result);
                     }
                 }
             }
 
-            // если остались не расспаршенные символы
+            // если остались не расспаршенные символы в группе
             if (readyToParse.Length > 0)
             {
-                string value = readyToParse.ToString();
-                if (int.TryParse(value, out int parseValue))
-                {
-                    switch (readyToParseType)
-                    {
-                        case MaskCharType.Year:
-                            year = parseValue;
-                            break;
-                        case MaskCharType.Month:
-                            month = parseValue;
-                            break;
-                        case MaskCharType.Day:
-                            day = parseValue;
-                            break;
-                        case MaskCharType.Hour:
-                            hour = parseValue;
-                            break;
-                        case MaskCharType.Minute:
-                            minute = parseValue;
-                            break;
-                        case MaskCharType.Second:
-                            sec = parseValue;
-                            break;
-                    }
-                }
+                readyToParse.FinalizingNumberChain(maskCharType, ref result);
             }
         }
 
-        private MaskCharType CheckIsMaskChar(char c)
+        private MaskCharType GetMaskCharType(char c)
         {
             switch (c)
             {
@@ -373,12 +303,7 @@ namespace ValidatorSam.Converters
             }
         }
 
-        private bool SpecialCharMask(char c)
-        {
-            return _allowSpecialChars.ContainsValue(c);
-        }
-
-        private enum MaskCharType
+        internal enum MaskCharType
         {
             None = 0,
             Year,
@@ -387,6 +312,92 @@ namespace ValidatorSam.Converters
             Minute,
             Hour,
             Second,
+        }
+
+        internal struct ChainBuilder
+        {
+            private StackStringBuilder50 _sb;
+            private MaskCharType _current;
+
+            public int Length => _sb.Length;
+            public string DebugText => $"_____{_current}: <<{_sb.ToString()}>>_____";
+
+            internal void PushNumberChain(char inputChar, MaskCharType mType, ref BundleDate result)
+            {
+                if (_current == mType)
+                {
+                    _sb.Append(inputChar);
+                }
+                else
+                {
+                    if (int.TryParse(_sb.AsSpan(), out int intParse))
+                    {
+                        switch (_current)
+                        {
+                            case MaskCharType.Year:
+                                result.year = intParse;
+                                break;
+                            case MaskCharType.Month:
+                                result.month = intParse;
+                                break;
+                            case MaskCharType.Day:
+                                result.day = intParse;
+                                break;
+                            case MaskCharType.Hour:
+                                result.hour = intParse;
+                                break;
+                            case MaskCharType.Minute:
+                                result.minute = intParse;
+                                break;
+                            case MaskCharType.Second:
+                                result.sec = intParse;
+                                break;
+                        }
+                    }
+                    _current = mType;
+                    _sb.Clear();
+                    _sb.Append(inputChar);
+                }
+            }
+
+            internal void FinalizingNumberChain(MaskCharType mType, ref BundleDate result)
+            {
+                if (int.TryParse(_sb.AsSpan(), out int intParse))
+                {
+                    switch (_current)
+                    {
+                        case MaskCharType.Year:
+                            result.year = intParse;
+                            break;
+                        case MaskCharType.Month:
+                            result.month = intParse;
+                            break;
+                        case MaskCharType.Day:
+                            result.day = intParse;
+                            break;
+                        case MaskCharType.Hour:
+                            result.hour = intParse;
+                            break;
+                        case MaskCharType.Minute:
+                            result.minute = intParse;
+                            break;
+                        case MaskCharType.Second:
+                            result.sec = intParse;
+                            break;
+                    }
+                }
+                _sb.Clear();
+            }
+        }
+
+        internal struct BundleDate
+        {
+            public int year;
+            public int month;
+            public int day;
+            public int hour;
+            public int minute;
+            public int sec;
         }
     }
 #nullable disable

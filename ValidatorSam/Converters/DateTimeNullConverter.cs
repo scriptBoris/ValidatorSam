@@ -26,7 +26,7 @@ namespace ValidatorSam.Converters
         public ConverterResult<DateTime?> RawToValue(ReadOnlySpan<char> rawValue, ReadOnlySpan<char> oldRawValue, DateTime? oldValue, Validator validator)
         {
             var culture = validator.CultureInfo ?? CultureInfo.CurrentCulture;
-            var stringFormat = (validator.StringFormat ?? DEFAULT_DATEFORMAT).AsSpan();
+            var stringFormat = validator.StringFormat ?? DEFAULT_DATEFORMAT;
             var res = MasterParse(rawValue, culture, stringFormat);
             if (res.ResultType == ConverterResultType.Success)
             {
