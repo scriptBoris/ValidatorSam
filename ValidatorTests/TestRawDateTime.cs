@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ValidatorSam;
+using ValidatorSam.Converters;
 
 namespace ValidatorTests
 {
@@ -146,6 +148,39 @@ namespace ValidatorTests
             Assert.AreEqual("2001/11/12", DateWin.RawValue);
             Assert.AreEqual(default, DateWin.Value);
             Assert.IsFalse(DateWin.IsValid);
+        }
+
+        [TestMethod]
+        public void StandaloneConverter()
+        {
+            var conv = new DateTimeConverter("dd.MM.yyyy");
+            var culture = CultureInfo.InvariantCulture;
+            var res = conv.MasterParse("28.11.2022", culture, "dd.MM.yyyy");
+
+            Assert.AreEqual(new DateTime(2022, 11, 28), res.Result);
+            Assert.AreEqual("28.11.2022", res.RawResult);
+        }
+
+        [TestMethod]
+        public void StandaloneConverter2()
+        {
+            var conv = new DateTimeConverter("dd.MM.yyyy");
+            var culture = CultureInfo.InvariantCulture;
+            var res = conv.MasterParse("28.1.2022", culture, "dd.MM.yyyy");
+
+            Assert.AreEqual(new DateTime(2022, 1, 28), res.Result);
+            Assert.AreEqual("28.1.2022", res.RawResult);
+        }
+
+        [TestMethod]
+        public void StandaloneConverter3()
+        {
+            var conv = new DateTimeConverter("dd.MM.yyyy");
+            var culture = CultureInfo.InvariantCulture;
+            var res = conv.MasterParse("28.ы1.2022", culture, "dd.MM.yyyy");
+
+            Assert.AreEqual(new DateTime(2022, 1, 28), res.Result);
+            Assert.AreEqual("28.1.2022", res.RawResult);
         }
     }
 }
