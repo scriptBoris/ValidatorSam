@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using ValidatorSam.Core;
 
 namespace ValidatorSam.Internal
 {
@@ -10,15 +11,15 @@ namespace ValidatorSam.Internal
     {
         internal HandleRawResult(
             ValidatorResult? prepError,
-            string? newRaw,
             [AllowNull] T newValue,
-            bool forceUpdateRaw)
+            PreprocessResultType type)
         {
             PrepError = prepError;
-            NewRaw = newRaw;
             NewValue = newValue;
-            ForceUpdateRaw = forceUpdateRaw;
+            ResultType = type;
         }
+
+        internal PreprocessResultType ResultType { get; }
 
         /// <summary>
         /// Ошибка препроцессора
@@ -26,20 +27,10 @@ namespace ValidatorSam.Internal
         internal ValidatorResult? PrepError { get; }
 
         /// <summary>
-        /// Текстовое представление значения (RawValue)
-        /// </summary>
-        internal string? NewRaw { get; }
-
-        /// <summary>
         /// Значение
         /// </summary>
         [AllowNull]
         internal T NewValue { get; }
-
-        /// <summary>
-        /// Нужно ли форсировано перерисовать RawValue
-        /// </summary>
-        internal bool ForceUpdateRaw { get; }
     }
 #nullable disable
 }

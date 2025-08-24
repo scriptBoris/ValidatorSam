@@ -45,7 +45,7 @@ namespace ValidatorSam.Core
         /// </summary>
         /// <param name="newValue">New value</param>
         /// <param name="validator">Invoker.</param>
-        ConverterResult<T> ValueToRaw(T newValue, Validator validator);
+        string ValueToRaw(T newValue, Validator validator);
     }
 
     /// <summary>

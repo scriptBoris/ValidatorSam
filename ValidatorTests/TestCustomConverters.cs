@@ -32,9 +32,9 @@ namespace ValidatorTests
             }
         }
 
-        public ConverterResult<MockCity> ValueToRaw(MockCity newValue, Validator validator)
+        public string ValueToRaw(MockCity newValue, Validator validator)
         {
-            return ConverterResult.Success(newValue, newValue.CityName);
+            return newValue.CityName;
         }
     }
 

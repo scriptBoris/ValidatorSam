@@ -53,22 +53,15 @@ namespace ValidatorSam.Core
         public T ValueResult { get; private set; }
 
         /// <summary>
-        /// Modificated RawValue
-        /// </summary>
-        public string? RawResult { get; private set; }
-
-        /// <summary>
         /// The preprocessor successful changed the value
         /// </summary>
         /// <param name="value">modificated Value</param>
-        /// <param name="raw">modificated RawValue</param>
-        public static PreprocessResult<T> Success([AllowNull]T value, string? raw)
+        public static PreprocessResult<T> Success([AllowNull]T value)
         {
             return new PreprocessResult<T>
             {
                 ResultType = PreprocessResultType.Success,
                 ValueResult = value,
-                RawResult = raw,
             };
         }
 
@@ -77,15 +70,13 @@ namespace ValidatorSam.Core
         /// </summary>
         /// <param name="errorText">Required error text</param>
         /// <param name="value">modificated Value</param>
-        /// <param name="raw">modificated RawValue</param>
-        public static PreprocessResult<T> Error(string errorText, T value, string? raw)
+        public static PreprocessResult<T> Error(string errorText, T value)
         {
             return new PreprocessResult<T>
             {
                 ResultType = PreprocessResultType.Error,
                 ErrorText = errorText,
                 ValueResult = value,
-                RawResult = raw,
             };
         }
 

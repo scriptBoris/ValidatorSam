@@ -44,7 +44,7 @@ namespace ValidatorSam
         public new T Value
         {
             get => _value;
-            set => SetValue(_value, value, ValueInvokers.Value, true, true, true);
+            set => SetValue(_value, value, ValueInvokers.Value, true, true);
         }
 
         /// <inheritdoc cref="Validator.RawValue"/>
@@ -142,7 +142,7 @@ namespace ValidatorSam
         /// <inheritdoc/>
         protected override void GenericSetValue(object? value)
         {
-            SetValue(_value, value, ValueInvokers.Value, true, true, true);
+            SetValue(_value, value, ValueInvokers.Value, true, true);
         }
 
         /// <inheritdoc/>
@@ -212,7 +212,7 @@ namespace ValidatorSam
             bool notEqualRawValues = !rawValue.SequenceEqual(input);
 
             if (noError && (notEqualValues || notEqualRawValues))
-                SetValue(_value, result, ValueInvokers.RawValue, false, true, true);
+                SetValue(_value, result, ValueInvokers.RawValue, true, true);
 
             if (notEqualRawValues)
                 OnPropertyChanged(nameof(RawValue));
@@ -283,7 +283,7 @@ namespace ValidatorSam
         }
 
         /// <inheritdoc/>
-        internal override void SetValue(object? old, object? newest, ValueInvokers invoker, bool updateRaw, bool useValidations, bool usePreprocessors)
+        internal override void SetValue(object? old, object? newest, ValueInvokers invoker, bool useValidations, bool usePreprocessors)
         {
             T oldValue;
             if (old is T castOld)
@@ -297,32 +297,44 @@ namespace ValidatorSam
             else
                 newValue = default;
 
-            SetValue(oldValue, newValue, invoker, updateRaw, useValidations, usePreprocessors);
+            SetValue(oldValue, newValue, invoker, useValidations, usePreprocessors);
         }
 
         /// <inheritdoc cref="Validator.SetValue"/>
-        private void SetValue([AllowNull] T old, [AllowNull] T newest, ValueInvokers invoker, bool updateRaw, bool useValidations, bool usePreprocessors)
+        private void SetValue([AllowNull] T old, [AllowNull] T newest, ValueInvokers invoker, bool useValidations, bool usePreprocessors)
         {
             ValidatorResult? prepError = null;
-            string? newRaw = null;
             T newValue = newest;
-            bool forceUpdateRaw = false;
+            bool updateRaw = invoker == ValueInvokers.Value;
+
             if (usePreprocessors)
             {
-                var hrw = HandleRaw(old, newest);
-                prepError = hrw.PrepError;
-                newRaw = hrw.NewRaw;
-                newValue = hrw.NewValue;
-                forceUpdateRaw = hrw.ForceUpdateRaw;
+                var hrw = HandlePreprocessor(old, newest);
+                switch (hrw.ResultType)
+                {
+                    case PreprocessResultType.Success:
+                        newValue = hrw.NewValue;
+                        updateRaw = true;
+                        break;
+                    case PreprocessResultType.Error:
+                        newValue = hrw.NewValue;
+                        prepError = hrw.PrepError;
+                        updateRaw = true;
+                        break;
+                    case PreprocessResultType.Ignore:
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
             }
 
             _value = newValue;
 
-            if (updateRaw || forceUpdateRaw)
-                _rawValue = newRaw;
-
-            if (invoker == ValueInvokers.Value)
+            if (updateRaw)
+            {
                 _convertError = null;
+                _rawValue = HandleRawDefault(old, newValue);
+            }
 
             if (useValidations)
             {
@@ -363,43 +375,47 @@ namespace ValidatorSam
         }
 
         /// <summary>
-        /// Преобразует value => raw value с учетом препроцессоров
+        /// Преобразует value => value с учетом всех препроцессоров
         /// </summary>
-        private HandleRawResult<T> HandleRaw([AllowNull] T old, [AllowNull] T newest)
+        private HandleRawResult<T> HandlePreprocessor([AllowNull] T old, [AllowNull] T newest)
         {
-            ValidatorResult? prepError = null;
-            string? newRaw = null;
+            if (_preprocess.Count == 0)
+                return new HandleRawResult<T>(null, default, PreprocessResultType.Ignore);
+
             T newValue = newest;
-            bool forceUpdateRaw = false;
+            ValidatorResult prepError = default;
             var args = new ValidatorPreprocessArgs<T>
             {
                 Validator = this,
                 NewValue = newest,
                 OldValue = old,
             };
+
+            int ignoreCount = 0;
             foreach (var preprocessor in _preprocess)
             {
                 var pres = preprocessor(args);
                 switch (pres.ResultType)
                 {
                     case PreprocessResultType.Success:
-                        newRaw = pres.RawResult;
                         newValue = pres.ValueResult;
                         break;
                     case PreprocessResultType.Error:
                         prepError = new ValidatorResult(false, pres.ErrorText, Name);
-                        newRaw = pres.RawResult;
                         newValue = pres.ValueResult;
-                        forceUpdateRaw = true;
-                        break;
+                        return new HandleRawResult<T>(prepError, newValue, PreprocessResultType.Error);
                     case PreprocessResultType.Ignore:
+                        ignoreCount++;
                         continue;
                     default:
                         throw new NotImplementedException();
                 }
             }
 
-            return new HandleRawResult<T>(prepError, newRaw, newValue, forceUpdateRaw);
+            if (ignoreCount == _preprocess.Count)
+                return new HandleRawResult<T>(null, default, PreprocessResultType.Ignore);
+
+            return new HandleRawResult<T>(prepError, newValue, PreprocessResultType.Success);
         }
 
         private ValidatorResult InternalCheckValid([AllowNull] T genericValue, string rawValue, bool useValidation, bool usePreprocessors)
@@ -472,42 +488,18 @@ namespace ValidatorSam
         /// Преобразует Value в текстовое представление для RawValue
         /// (например для цифр, int, double и т.д.)
         /// </summary>
-        internal HandleRawResult<T> HandleRawDefault([AllowNull] T old, [AllowNull] T newest)
+        internal string HandleRawDefault([AllowNull] T old, [AllowNull] T newest)
         {
-            ValidatorResult? prepError = null;
-            string? newRaw = null;
-            T newValue = default;
-
-            bool forceUpdateRaw = false;
             var converter = _defaultCastConverter;
             if (converter != null && newest != null)
             {
-                var result = converter.ValueToRaw(newest, this);
-                switch (result.ResultType)
-                {
-                    case ConverterResultType.Success:
-                        newRaw = result.RawResult;
-                        newValue = result.Result;
-                        break;
-                    case ConverterResultType.Error:
-                        prepError = new ValidatorResult(false, result.ErrorText, Name);
-                        newRaw = result.RawResult;
-                        newValue = result.Result;
-                        forceUpdateRaw = true;
-                        break;
-                    case ConverterResultType.Skip:
-                        break;
-                    default:
-                        throw new NotImplementedException();
-                }
+                string result = converter.ValueToRaw(newest, this);
+                return result;
             }
             else
             {
-                newRaw = newest?.ToString();
-                newValue = newest;
+                return "";
             }
-
-            return new HandleRawResult<T>(prepError, newRaw, newValue, forceUpdateRaw);
         }
 
         /// <inheritdoc cref="Validator.SetValueAsRat(object?, RatModes)"/>

@@ -41,17 +41,17 @@ namespace ValidatorSam.Converters
         }
 
         /// <inheritdoc/>
-        public ConverterResult<DateTime> ValueToRaw(DateTime newValue, Validator validator)
+        public string ValueToRaw(DateTime newValue, Validator validator)
         {
             if (validator.StringFormat != null)
             {
                 string formatedRaw = newValue.ToString(validator.StringFormat);
-                return ConverterResult.Success(newValue, formatedRaw);
+                return formatedRaw;
             }
             else
             {
                 string raw = newValue.ToString(DEFAULT_DATEFORMAT);
-                return ConverterResult.Success(newValue, raw);
+                return raw;
             }
         }
     }

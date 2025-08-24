@@ -44,42 +44,74 @@ namespace ValidatorSam.Converters
                 case TypeCode.UInt16:
                 case TypeCode.UInt32:
                 case TypeCode.UInt64:
-                    return MasterParse(rawValue, oldRaw, oldValue, _typeCode, false, false);
+                    return InternalMasterParse(rawValue, oldRaw, oldValue, _typeCode, false, false);
                 case TypeCode.Single:
-                    return MasterParse(rawValue, oldRaw, oldValue, _typeCode, true, true, 7);
+                    return InternalMasterParse(rawValue, oldRaw, oldValue, _typeCode, true, true, 7);
                 case TypeCode.Double:
-                    return MasterParse(rawValue, oldRaw, oldValue, _typeCode, true, true, 16);
+                    return InternalMasterParse(rawValue, oldRaw, oldValue, _typeCode, true, true, 16);
                 case TypeCode.Decimal:
-                    return MasterParse(rawValue, oldRaw, oldValue, _typeCode, true, true, 28);
+                    return InternalMasterParse(rawValue, oldRaw, oldValue, _typeCode, true, true, 28);
                 case TypeCode.SByte:
                 case TypeCode.Int16:
                 case TypeCode.Int32:
                 case TypeCode.Int64:
-                    return MasterParse(rawValue, oldRaw, oldValue, _typeCode, false, true);
+                    return InternalMasterParse(rawValue, oldRaw, oldValue, _typeCode, false, true);
                 default:
                     return ConverterResult.Ignore<T>();
             }
         }
 
         /// <inheritdoc/>
-        public ConverterResult<T> ValueToRaw(T newValue, Validator validator)
+        public string ValueToRaw(T newValue, Validator validator)
         {
             if (newValue is IFormattable fnewValue && validator.StringFormat != null)
             {
                 string raw = fnewValue.ToString(validator.StringFormat, validator.CultureInfo);
-                return ConverterResult.Success<T>(newValue, raw);
+                return raw;
             }
             else
             {
                 string raw = newValue?.ToString() ?? "";
-                return ConverterResult.Success<T>(newValue, raw);
+                return raw;
             }
         }
 
-        internal static ConverterResult<T> MasterParse(
+        /// <summary>
+        /// Allow converting text => number
+        /// </summary>
+        /// <param name="rawValue">Text to be converted</param>
+        /// <param name="culture">Culture</param>
+        /// <param name="stringFormat">Numbers format</param>
+        /// <returns></returns>
+        public ConverterResult<T> MasterParse(ReadOnlySpan<char> rawValue, CultureInfo culture, string? stringFormat)
+        {
+            switch (_typeCode)
+            {
+                case TypeCode.Byte:
+                case TypeCode.UInt16:
+                case TypeCode.UInt32:
+                case TypeCode.UInt64:
+                    return InternalMasterParse(rawValue, "", default, _typeCode, false, false);
+                case TypeCode.Single:
+                    return InternalMasterParse(rawValue, "", default, _typeCode, true, true, 7);
+                case TypeCode.Double:
+                    return InternalMasterParse(rawValue, "", default, _typeCode, true, true, 16);
+                case TypeCode.Decimal:
+                    return InternalMasterParse(rawValue, "", default, _typeCode, true, true, 28);
+                case TypeCode.SByte:
+                case TypeCode.Int16:
+                case TypeCode.Int32:
+                case TypeCode.Int64:
+                    return InternalMasterParse(rawValue, "", default, _typeCode, false, true);
+                default:
+                    return ConverterResult.Ignore<T>();
+            }
+        }
+
+        internal static ConverterResult<T> InternalMasterParse(
             ReadOnlySpan<char> rawValue,
             ReadOnlySpan<char> oldRaw,
-            T oldValue,
+            [AllowNull]T oldValue,
             TypeCode code,
             bool maybeComma,
             bool maybeNegative,

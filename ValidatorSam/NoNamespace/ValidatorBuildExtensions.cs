@@ -107,12 +107,12 @@ namespace ValidatorSam
                 if (length < min)
                 {
                     string msg = string.Format(ValidatorLocalization.Resolve.StringLengthLess, min);
-                    return PreprocessResult<string>.Error(msg, newValueStr, null);
+                    return PreprocessResult<string>.Error(msg, newValueStr);
                 }
                 else if (length > max)
                 {
                     string msg = string.Format(ValidatorLocalization.Resolve.StringLengthOver, max);
-                    return PreprocessResult<string>.Error(msg, newValueStr.Substring(0, (int)max + 1), null);
+                    return PreprocessResult<string>.Error(msg, newValueStr.Substring(0, (int)max + 1));
                 }
 
                 return PreprocessResult<string>.Ignore();
@@ -148,13 +148,13 @@ namespace ValidatorSam
                 if (nc.CompareTo(min) < 0)
                 {
                     string msg = string.Format(ValidatorLocalization.Resolve.StringValueLess, min);
-                    return PreprocessResult<T>.Error(msg, min, null);
+                    return PreprocessResult<T>.Error(msg, min);
                 }
 
                 if (nc.CompareTo(max) > 0)
                 {
                     string msg = string.Format(ValidatorLocalization.Resolve.StringValueOver, max);
-                    return PreprocessResult<T>.Error(msg, max, null);
+                    return PreprocessResult<T>.Error(msg, max);
                 }
             }
 

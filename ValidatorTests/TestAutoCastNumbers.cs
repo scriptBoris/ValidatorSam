@@ -5,7 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ValidatorSam;
+using ValidatorSam.Converters;
 using ValidatorSam.Core;
+using ValidatorTests.Supports;
 
 namespace ValidatorTests
 {
@@ -362,6 +364,44 @@ namespace ValidatorTests
         public void CheckFormatCultureEn()
         {
             Assert.AreEqual("0.00", FieldWithCultureEn.RawValue);
+        }
+
+        // Проверка работы формата чисел
+        public Validator<double> FieldRussianN2 => Validator<double>.Build()
+            .UsingRawValueFormat("N2", new CultureInfo("ru-RU"))
+            .UsingValue(1200300.1234)
+            .UsingRequired();
+        [TestMethod]
+        public void RussianN2()
+        {
+            Assert.AreEqual("1 200 300,12", FieldRussianN2.RawValue.NormalizeSpaces());
+            Assert.AreEqual(1200300.1234, FieldRussianN2.Value);
+
+            FieldRussianN2.RawValue = "1";
+            Assert.AreEqual("1", FieldRussianN2.RawValue);
+            Assert.AreEqual(1.00, FieldRussianN2.Value);
+
+            FieldRussianN2.RawValue = "12,";
+            Assert.AreEqual("12,", FieldRussianN2.RawValue);
+            Assert.AreEqual(12.00, FieldRussianN2.Value);
+
+            FieldRussianN2.RawValue = "12,3";
+            Assert.AreEqual("12,3", FieldRussianN2.RawValue);
+            Assert.AreEqual(12.30, FieldRussianN2.Value);
+
+            FieldRussianN2.Value = 1200300.1234;
+            Assert.AreEqual("1 200 300,12", FieldRussianN2.RawValue.NormalizeSpaces());
+            Assert.AreEqual(1200300.1234, FieldRussianN2.Value);
+        }
+
+        [TestMethod]
+        public void StandaloneConverter()
+        {
+            var converter = new NumbersConverter<double>();
+            var culture = CultureInfo.InvariantCulture;
+            var res = converter.MasterParse("1234.56", culture, null);
+            Assert.AreEqual("1234.56", res.RawResult);
+            Assert.AreEqual(1234.56, res.Result);
         }
     }
 }

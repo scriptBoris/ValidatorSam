@@ -232,10 +232,10 @@ namespace ValidatorSam
             }
 
             var initValue = builder.Validator.InitValue;
-            var hrw = builder.Validator.HandleRawDefault(default, initValue);
+            string initRawValue = builder.Validator.HandleRawDefault(default, initValue);
 
             builder.Validator._value = initValue;
-            builder.Validator._rawValue = hrw.NewRaw;
+            builder.Validator._rawValue = initRawValue;
 
             return builder.Validator;
         }

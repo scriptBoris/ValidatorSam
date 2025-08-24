@@ -242,10 +242,9 @@ namespace ValidatorSam
         /// <param name="old">Старое значение</param>
         /// <param name="newest">Новое значение</param>
         /// <param name="invoker">Источник вызова этого метода</param>
-        /// <param name="updateRaw">Обновлять ли RawValue</param>
         /// <param name="useValidations">Включить правила валидации</param>
         /// <param name="usePreprocessors"></param>
-        internal abstract void SetValue(object? old, object? newest, ValueInvokers invoker, bool updateRaw, bool useValidations, bool usePreprocessors);
+        internal abstract void SetValue(object? old, object? newest, ValueInvokers invoker, bool useValidations, bool usePreprocessors);
 
         #region internal methods
         /// <summary>
@@ -325,7 +324,7 @@ namespace ValidatorSam
             if (mode.HasFlag(RatModes.Default))
             {
                 var _value = GenericGetValue();
-                SetValue(_value, value, ValueInvokers.Value, true, !skipValidations, !skipPreprocessors);
+                SetValue(_value, value, ValueInvokers.Value, !skipValidations, !skipPreprocessors);
             }
         }
 
