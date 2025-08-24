@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
 using ValidatorSam.Core;
+using ValidatorSam.Internal;
 
 namespace ValidatorSam.Converters
 {
@@ -84,19 +85,19 @@ namespace ValidatorSam.Converters
             bool maybeNegative,
             int maxRawLength = -1)
         {
-            var sbLogic = new StringBuilder(rawValue.Length);
-            var sbRaw = new StringBuilder(rawValue.Length);
+            var sbLogic = new StackStringBuilder50();
+            var sbRaw = new StackStringBuilder50();
 
             if (maybeComma)
             {
-                ProcessFloat(rawValue, sbLogic, sbRaw, maxRawLength);
+                ProcessFloat(rawValue, ref sbLogic, ref sbRaw, maxRawLength);
             }
             else
             {
                 if (maybeNegative)
-                    ProcessInt(rawValue, sbLogic, sbRaw);
+                    ProcessInt(rawValue, ref sbLogic, ref sbRaw);
                 else
-                    ProcessIntPositive(rawValue, sbLogic, sbRaw);
+                    ProcessIntPositive(rawValue, ref sbLogic, ref sbRaw);
             }
 
             string logic = sbLogic.ToString();
@@ -267,7 +268,7 @@ namespace ValidatorSam.Converters
             return true;
         }
 
-        private static void ProcessInt(ReadOnlySpan<char> newValueStr, StringBuilder sbLogic, StringBuilder sbRaw)
+        private static void ProcessInt(ReadOnlySpan<char> newValueStr, ref StackStringBuilder50 sbLogic, ref StackStringBuilder50 sbRaw)
         {
             bool hasZero = false;
             bool goNumbers = false;
@@ -298,8 +299,10 @@ namespace ValidatorSam.Converters
                     case '9':
                         if (hasZero)
                         {
-                            sbRaw.Remove(sbRaw.Length - 1, 1);
-                            sbLogic.Remove(sbLogic.Length - 1, 1);
+                            //sbRaw.Remove(sbRaw.Length - 1, 1);
+                            //sbLogic.Remove(sbLogic.Length - 1, 1);
+                            sbRaw.Remove();
+                            sbLogic.Remove();
                         }
 
                         sbRaw.Append(c);
@@ -339,7 +342,7 @@ namespace ValidatorSam.Converters
             }
         }
 
-        private static void ProcessIntPositive(ReadOnlySpan<char> newValueStr, StringBuilder sbLogic, StringBuilder sbRaw)
+        private static void ProcessIntPositive(ReadOnlySpan<char> newValueStr, ref StackStringBuilder50 sbLogic, ref StackStringBuilder50 sbRaw)
         {
             bool hasMinus = false;
             bool hasZero = false;
@@ -368,8 +371,10 @@ namespace ValidatorSam.Converters
                     case '9':
                         if (hasZero)
                         {
-                            sbRaw.Remove(sbRaw.Length - 1, 1);
-                            sbLogic.Remove(sbLogic.Length - 1, 1);
+                            //sbRaw.Remove(sbRaw.Length - 1, 1);
+                            //sbLogic.Remove(sbLogic.Length - 1, 1);
+                            sbRaw.Remove();
+                            sbLogic.Remove();
                         }
 
                         sbRaw.Append(c);
@@ -406,7 +411,7 @@ namespace ValidatorSam.Converters
             }
         }
 
-        private static void ProcessFloat(ReadOnlySpan<char> newValueStr, StringBuilder sbLogic, StringBuilder sbRaw, int limit)
+        private static void ProcessFloat(ReadOnlySpan<char> newValueStr, ref StackStringBuilder50 sbLogic, ref StackStringBuilder50 sbRaw, int limit)
         {
             bool hasMinus = false;
             bool hasZero = false;
@@ -458,8 +463,10 @@ namespace ValidatorSam.Converters
                     case '9':
                         if (hasZero)
                         {
-                            sbRaw.Remove(sbRaw.Length - 1, 1);
-                            sbLogic.Remove(sbLogic.Length - 1, 1);
+                            //sbRaw.Remove(sbRaw.Length - 1, 1);
+                            //sbLogic.Remove(sbLogic.Length - 1, 1);
+                            sbRaw.Remove();
+                            sbLogic.Remove();
                         }
 
                         sbRaw.Append(c);

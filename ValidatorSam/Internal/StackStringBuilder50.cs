@@ -13,6 +13,15 @@ namespace ValidatorSam.Internal
         private fixed char _buffer[50];
         private byte _length;
 
+        public int Length => _length;
+        public string DebugText => $"_____length:{_length} <<{ToString()}>>_____";
+
+        public char this[int index]
+        {
+            get => _buffer[index];
+            set => _buffer[index] = value;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Append(char c)
         {
@@ -42,9 +51,15 @@ namespace ValidatorSam.Internal
             _length = 0;
         }
 
-        public int Length => _length;
-        public string DebugText => $"_____length:{_length} <<{ToString()}>>_____";
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Remove()
+        {
+            _length--;
+            if (_length < 0)
+                _length = 0;
+        }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<char> AsSpan()
         {
             fixed (char* ptr = _buffer)
@@ -53,6 +68,7 @@ namespace ValidatorSam.Internal
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override string ToString()
         {
             fixed (char* ptr = _buffer)
