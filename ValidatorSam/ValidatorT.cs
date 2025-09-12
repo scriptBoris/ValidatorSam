@@ -548,6 +548,9 @@ namespace ValidatorSam
         {
             if (_defaultCastConverter != null)
             {
+                if (newRaw.Length == 0 && CanNotBeNull)
+                    return ConverterResult.Ignore<T>();
+
                 var castResult = _defaultCastConverter.RawToValue(newRaw, oldRaw, _value, this);
                 return castResult;
             }

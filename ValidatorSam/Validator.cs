@@ -43,10 +43,11 @@ namespace ValidatorSam
         internal bool _isEnabled = true;
         internal bool _isGenericStringType;
         internal string? _customName;
-        internal object? _payload;
+        internal Payload? _payload;
         private string? _textError;
         private bool _isValid;
         private string _name = "undefined";
+        private readonly object _lock = new object();
 
         /// <summary>
         /// Implementation INotifyPropertyChanged event
@@ -123,13 +124,16 @@ namespace ValidatorSam
         /// <summary>
         /// Payload that can be used for different purposes
         /// </summary>
-        public object? Payload 
-        { 
-            get => _payload;
-            set
+        public IPayload Payload 
+        {
+            get
             {
-                _payload = value;
-                OnPropertyChanged(nameof(Payload));
+                if (_payload == null)
+                    lock(_lock)
+                    {
+                        _payload ??= new Payload(this);
+                    }
+                return _payload;
             }
         }
 

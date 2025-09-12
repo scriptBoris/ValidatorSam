@@ -14,10 +14,16 @@ namespace ValidatorTests
     {
         public ConverterResult<MockCity> RawToValue(ReadOnlySpan<char> rawValue, ReadOnlySpan<char> oldRawValue, MockCity oldValue, Validator validator)
         {
-            if (validator.Payload is not IList<MockCity> cities)
+            if (!validator.Payload.TryGetPayload("items", out var payloadItems))
             {
                 var city = new MockCity { Id = -1, CityName = rawValue.ToString() };
-                return ConverterResult.Success<MockCity>(city, rawValue);
+                return ConverterResult.Error("No itemssource", city, rawValue);
+            }
+
+            if (payloadItems is not IList<MockCity> cities)
+            {
+                var city = new MockCity { Id = -1, CityName = rawValue.ToString() };
+                return ConverterResult.Error("No itemssource", city, rawValue);
             }
 
             var name = rawValue.ToString();
@@ -66,7 +72,7 @@ namespace ValidatorTests
         ];
 
         public Validator<MockCity> City => Validator<MockCity>.Build()
-            .UsingPayload(_cities)
+            .UsingPayload("items", _cities)
             .UsingConverter(new CityConverter());
 
         /// <summary>

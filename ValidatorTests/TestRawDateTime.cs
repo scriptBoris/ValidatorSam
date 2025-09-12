@@ -209,5 +209,27 @@ namespace ValidatorTests
             Assert.AreEqual(new DateTime(2022, 1, 28), res.Result);
             Assert.AreEqual("28.1.2022", res.RawResult);
         }
+
+        public Validator<DateTime?> DateArrival => Validator<DateTime?>.Build()
+            .UsingRawValueFormat("dd.MM.yyyy");
+
+        [TestMethod]
+        public void TestNullDateWithFormat()
+        {
+            DateArrival.RawValue = "25.11.2025";
+            Assert.AreEqual(new DateTime(2025, 11, 25), DateArrival.Value);
+            Assert.AreEqual("25.11.2025", DateArrival.RawValue);
+            Assert.IsTrue(DateArrival.IsValid);
+
+            DateArrival.RawValue = "2";
+            Assert.AreEqual(null, DateArrival.Value);
+            Assert.AreEqual("2", DateArrival.RawValue);
+            Assert.IsFalse(DateArrival.IsValid);
+
+            DateArrival.RawValue = "";
+            Assert.AreEqual(null, DateArrival.Value);
+            Assert.AreEqual("", DateArrival.RawValue);
+            Assert.IsTrue(DateArrival.IsValid);
+        }
     }
 }

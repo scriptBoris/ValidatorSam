@@ -159,9 +159,9 @@ namespace ValidatorSam
         /// <summary>
         /// Payload
         /// </summary>
-        public ValidatorBuilder<T> UsingPayload(object payload)
+        public ValidatorBuilder<T> UsingPayload(string key, object payload)
         {
-            Validator._payload = payload;
+            Validator.Payload.Push(key, payload);
             return this;
         }
 
