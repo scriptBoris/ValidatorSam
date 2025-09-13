@@ -228,5 +228,19 @@ namespace ValidatorTests
             Assert.AreEqual("", DateArrival.RawValue);
             Assert.IsTrue(DateArrival.IsValid);
         }
+
+        [TestMethod]
+        public void CharInYear()
+        {
+            DateArrival.RawValue = "25.11.20";
+            Assert.AreEqual("25.11.20", DateArrival.RawValue);
+            Assert.AreEqual(new DateTime(2020, 11, 25), DateArrival.Value);
+            Assert.IsTrue(DateArrival.IsValid);
+
+            DateArrival.RawValue = "25.11.20f";
+            Assert.AreEqual("25.11.20", DateArrival.RawValue);
+            Assert.AreEqual(new DateTime(2020, 11, 25), DateArrival.Value);
+            Assert.IsTrue(DateArrival.IsValid);
+        }
     }
 }

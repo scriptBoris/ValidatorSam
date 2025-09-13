@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using ValidatorSam.Core;
@@ -20,6 +22,11 @@ namespace ValidatorSam.Converters
         /// Default StringFormat
         /// </summary>
         public const string DEFAULT_DATEFORMAT = "dd.MM.yyyy HH:mm";
+
+        /// <summary>
+        /// Global string format cache
+        /// </summary>
+        private static readonly ConcurrentDictionary<string, char[]> _cache = new ConcurrentDictionary<string, char[]>();
 
         /// <summary>
         /// Read and preparse StringFormat
@@ -92,8 +99,33 @@ namespace ValidatorSam.Converters
                         break;
                 }
             }
+
+            char[] allowSpecialChars = _cache.GetOrAdd(stringFormat, (x) =>
+            {
+                var list = new Dictionary<char, char>();
+                foreach (var item in x)
+                {
+                    switch (item)
+                    {
+                        case 'y':
+                        case 'Y':
+                        case 'M':
+                        case 'd':
+                        case 'D':
+                        case 'h':
+                        case 'H':
+                        case 'm':
+                        case 's':
+                            break;
+                        default:
+                            list.TryAdd(item, item);
+                            break;
+                    }
+                }
+                return list.Select(x => x.Key).ToArray();
+            });
             
-            ReadInputAndLittleParse(rawValue, stringFormat, ref sb, ref bdate);
+            ReadInputAndLittleParse(rawValue, stringFormat, allowSpecialChars, ref sb, ref bdate);
             return ParseInt(culture, ref sb, ref bdate);
         }
 
@@ -154,6 +186,7 @@ namespace ValidatorSam.Converters
         /// Very rough parser
         /// </summary>
         internal static void ReadInputAndLittleParse(ReadOnlySpan<char> input, ReadOnlySpan<char> StringFormat,
+            char[] allowSpecialChars,
             ref StackStringBuilder50 outputRaw,
             ref BundleDate result)
         {
@@ -239,10 +272,13 @@ namespace ValidatorSam.Converters
                     // то ставим спецсимвол и скипаем до следующей группы
                     else if (isMaskDigit && !isDigit)
                     {
-
                         // на всякий случай проверяем, а не является ли введенный символ
                         // знаком маски (например "d")
                         if (GetMaskCharType(inputChar) != MaskCharType.None)
+                            continue;
+
+                        // проверяем а действительно ли введен разрешенный спец символ?
+                        if (!CheckAllowChar(inputChar, allowSpecialChars))
                             continue;
 
                         outputRaw.Append(inputChar);
@@ -276,6 +312,16 @@ namespace ValidatorSam.Converters
             {
                 readyToParse.FinalizingNumberChain(maskCharType, ref result);
             }
+        }
+
+        private static bool CheckAllowChar(char inputChar, char[] allowSpecialChars)
+        {
+            foreach (char c in allowSpecialChars)
+            {
+                if (c == inputChar) 
+                    return true;
+            }
+            return false;
         }
 
         private static MaskCharType GetMaskCharType(char c)
