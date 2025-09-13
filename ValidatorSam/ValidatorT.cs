@@ -114,7 +114,7 @@ namespace ValidatorSam
         /// <inheritdoc/>
         public override ValidatorResult CheckValid()
         {
-            var res = InternalCheckValid(Value, RawValue ?? "", true, true);
+            var res = InternalCheckValid(Value, RawValue ?? "", CheckValidInvokers.External, true, true);
             _isUnlockedVisualValid = true;
             IsValid = res.IsValid;
             TextError = res.TextError;
@@ -342,7 +342,7 @@ namespace ValidatorSam
                 if (prepError != null)
                     res = prepError.Value;
                 else
-                    res = InternalCheckValid(_value, _rawValue ?? "", true, false);
+                    res = InternalCheckValid(_value, _rawValue ?? "", CheckValidInvokers.SetValue, true, false);
 
                 bool oldValid = IsValid;
                 string? oldTextError = TextError;
@@ -418,7 +418,7 @@ namespace ValidatorSam
             return new HandleRawResult<T>(prepError, newValue, PreprocessResultType.Success);
         }
 
-        private ValidatorResult InternalCheckValid([AllowNull] T genericValue, string rawValue, bool useValidation, bool usePreprocessors)
+        private ValidatorResult InternalCheckValid([AllowNull] T genericValue, string rawValue, CheckValidInvokers invoker, bool useValidation, bool usePreprocessors)
         {
             bool isValid = true;
             string? textError = null;
@@ -443,11 +443,20 @@ namespace ValidatorSam
                 }
             }
 
-            if (_convertError != null)
+            if (invoker == CheckValidInvokers.External)
             {
-                isValid = false;
-                textError = _convertError;
-                goto skip;
+                var parse = TryConvertRawToValue("", RawValue);
+                if (parse.ResultType == ConverterResultType.Error)
+                {
+                    _convertError = parse.ErrorText;
+                    isValid = false;
+                    textError = _convertError;
+                    goto skip;
+                }
+                else
+                {
+                    _convertError = null;
+                }
             }
 
             if (usePreprocessors && !isEmpty)

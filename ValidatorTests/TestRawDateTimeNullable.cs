@@ -147,5 +147,36 @@ namespace ValidatorTests
             Assert.AreEqual(default, DateWin.Value);
             Assert.IsFalse(DateWin.IsValid);
         }
+
+        [TestMethod]
+        public void CheckEmptyError()
+        {
+            var vm = new ViewModel();
+            Validator[] fields;
+            bool isSuccess;
+
+            fields = Validator.GetAll(vm);
+            isSuccess = fields.CheckSuccess();
+            Assert.IsTrue(isSuccess);
+
+            vm.DateUpload.RawValue = "11";
+            fields = Validator.GetAll(vm);
+            isSuccess = fields.CheckSuccess();
+            Assert.IsFalse(isSuccess);
+
+            vm.DateUpload.RawValue = "Ы";
+            Assert.IsNotNull(vm.DateUpload.TextError);
+            Assert.IsFalse(vm.DateUpload.IsValid);
+
+            fields = Validator.GetAll(vm);
+            isSuccess = fields.CheckSuccess();
+            Assert.IsTrue(isSuccess);
+        }
+
+        internal class ViewModel
+        {
+            public Validator<DateTime?> DateUpload => Validator<DateTime?>.Build()
+                .UsingRawValueFormat("MM.dd.yyyy");
+        }
     }
 }
