@@ -26,7 +26,7 @@ namespace ValidatorSam.Converters
         /// <summary>
         /// Global string format cache
         /// </summary>
-        private static readonly ConcurrentDictionary<string, char[]> _cache = new ConcurrentDictionary<string, char[]>();
+        private static readonly ConcurrentDictionary<string, CacheItem> _cache = new ConcurrentDictionary<string, CacheItem>();
 
         /// <summary>
         /// Read and preparse StringFormat
@@ -70,39 +70,10 @@ namespace ValidatorSam.Converters
             var bdate = new BundleDate();
             var sb = new StackStringBuilder50();
 
-            foreach (var item in stringFormat)
-            {
-                switch (item)
-                {
-                    case 'y':
-                    case 'Y':
-                        bdate.year = -1;
-                        break;
-                    case 'M':
-                        bdate.month = -1;
-                        break;
-                    case 'd':
-                    case 'D':
-                        bdate.day = -1;
-                        break;
-                    case 'h':
-                    case 'H':
-                        bdate.hour = -1;
-                        break;
-                    case 'm':
-                        bdate.minute = -1;
-                        break;
-                    case 's':
-                        bdate.sec = -1;
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            char[] allowSpecialChars = _cache.GetOrAdd(stringFormat, (x) =>
+            var cacheItem = _cache.GetOrAdd(stringFormat, (x) =>
             {
                 var list = new Dictionary<char, char>();
+                var order = new Dictionary<DateTimeMembers, char>();
                 foreach (var item in x)
                 {
                     switch (item)
@@ -121,18 +92,76 @@ namespace ValidatorSam.Converters
                             list.TryAdd(item, item);
                             break;
                     }
+
+                    switch (item)
+                    {
+                        case 'y':
+                        case 'Y':
+                            order.TryAdd(DateTimeMembers.Year, item);
+                            break;
+                        case 'M':
+                            order.TryAdd(DateTimeMembers.Month, item);
+                            break;
+                        case 'd':
+                        case 'D':
+                            order.TryAdd(DateTimeMembers.Day, item);
+                            break;
+                        case 'h':
+                        case 'H':
+                            order.TryAdd(DateTimeMembers.Hour, item);
+                            break;
+                        case 'm':
+                            order.TryAdd(DateTimeMembers.Minute, item);
+                            break;
+                        case 's':
+                            order.TryAdd(DateTimeMembers.Second, item);
+                            break;
+                        default:
+                            break;
+                    }
                 }
-                return list.Select(x => x.Key).ToArray();
+                var output = new CacheItem
+                {
+                    AllowedChars = list.Select(x => x.Key).ToArray(),
+                    FormatQueue = order.Select(x => x.Key).ToArray(),
+                };
+                return output;
             });
-            
-            ReadInputAndLittleParse(rawValue, stringFormat, allowSpecialChars, ref sb, ref bdate);
-            return ParseInt(culture, ref sb, ref bdate);
+            foreach (var item in cacheItem.FormatQueue)
+            {
+                switch (item)
+                {
+                    case DateTimeMembers.Year:
+                        bdate.year = -1;
+                        break;
+                    case DateTimeMembers.Month:
+                        bdate.month = -1;
+                        break;
+                    case DateTimeMembers.Day:
+                        bdate.day = -1;
+                        break;
+                    case DateTimeMembers.Hour:
+                        bdate.hour = -1;
+                        break;
+                    case DateTimeMembers.Minute:
+                        bdate.minute = -1;
+                        break;
+                    case DateTimeMembers.Second:
+                        bdate.sec = -1;
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            ReadInputAndLittleParse(rawValue, stringFormat, cacheItem, ref sb, ref bdate);
+            return ParseInt(culture, cacheItem, ref sb, ref bdate);
         }
 
         /// <summary>
         /// Post-parser
         /// </summary>
-        internal static ConverterResult<DateTime?> ParseInt(CultureInfo culture, ref StackStringBuilder50 rawStringBuilder, ref BundleDate bdate)
+        internal static ConverterResult<DateTime?> ParseInt(CultureInfo culture, CacheItem cacheItem, ref StackStringBuilder50 rawStringBuilder, ref BundleDate bdate)
         {
             string raw = rawStringBuilder.ToString();
             int year = bdate.year;
@@ -142,23 +171,91 @@ namespace ValidatorSam.Converters
             int minute = bdate.minute;
             int sec = bdate.sec;
 
-            if (year <= 0 || year > 9999)
-                return ConverterResult.Error<DateTime?>("Invalid date", null, raw);
+            bool badYear = (year <= 0 || year > 9999);
+            bool badMonth = (month <= 0 || month > 12);
+            bool badDay = (day <= 0);
+            bool badHour = (hour < 0 || hour > 23);
+            bool badMinute = (minute < 0 || minute > 59);
+            bool badSec = (sec < 0 || sec > 59);
 
-            if (month <= 0 || month > 12)
-                return ConverterResult.Error<DateTime?>("Invalid month", null, raw);
+            int invalidMembers = bdate.InvalidMembersCount;
+            int validMembers = 0;
 
-            if (day <= 0)
-                return ConverterResult.Error<DateTime?>("Invalid day", null, raw);
+            foreach (var item in cacheItem.FormatQueue)
+            {
+                switch (item)
+                {
+                    case DateTimeMembers.Year:
+                        if (bdate.year > 0 && bdate.year <= 9999)
+                            validMembers++;
+                        break;
+                    case DateTimeMembers.Month:
+                        if (bdate.month > 0 && bdate.year <= 12)
+                            validMembers++;
+                        break;
+                    case DateTimeMembers.Day:
+                        if (bdate.day > 0 && bdate.day <= 31)
+                            validMembers++;
+                        break;
+                    case DateTimeMembers.Hour:
+                        if (bdate.hour >= 0 && bdate.hour <= 23)
+                            validMembers++;
+                        break;
+                    case DateTimeMembers.Minute:
+                        if (bdate.minute >= 0 && bdate.minute <= 59)
+                            validMembers++;
+                        break;
+                    case DateTimeMembers.Second:
+                        if (bdate.sec >= 0 && bdate.sec <= 59)
+                            validMembers++;
+                        break;
+                    default:
+                        break;
+                }
+            }
 
-            if (hour < 0 || hour > 23)
-                return ConverterResult.Error<DateTime?>("Invalid time", null, raw);
+            if (invalidMembers > 0)
+            {
+                if (validMembers == 1 ||
+                    invalidMembers == cacheItem.FormatQueue.Length)
+                {
+                    return ConverterResult.Error<DateTime?>(ValidatorLocalization.Resolve.StringInvalidInputForDateTime, null, raw);
+                }
+            }
 
-            if (minute < 0 || minute > 59)
-                return ConverterResult.Error<DateTime?>("Invalid time", null, raw);
 
-            if (sec < 0 || sec > 59)
-                return ConverterResult.Error<DateTime?>("Invalid time", null, raw);
+            foreach (var item in cacheItem.FormatQueue)
+            {
+                switch (item)
+                {
+                    case DateTimeMembers.Year:
+                        if (badYear)
+                            return ConverterResult.Error<DateTime?>(ValidatorLocalization.Resolve.StringInvalidYear, null, raw);
+                        break;
+                    case DateTimeMembers.Month:
+                        if (badMonth)
+                            return ConverterResult.Error<DateTime?>(ValidatorLocalization.Resolve.StringInvalidMonth, null, raw);
+                        break;
+                    case DateTimeMembers.Day:
+                        if (badDay)
+                            return ConverterResult.Error<DateTime?>(ValidatorLocalization.Resolve.StringInvalidDay, null, raw);
+                        break;
+                    case DateTimeMembers.Hour:
+                        if (badHour)
+                            return ConverterResult.Error<DateTime?>(ValidatorLocalization.Resolve.StringInvalidHour, null, raw);
+                        break;
+                    case DateTimeMembers.Minute:
+                        if (badMinute)
+                            return ConverterResult.Error<DateTime?>(ValidatorLocalization.Resolve.StringInvalidMinute, null, raw);
+                        break;
+                    case DateTimeMembers.Second:
+                        if (badSec)
+                            return ConverterResult.Error<DateTime?>(ValidatorLocalization.Resolve.StringInvalidSecond, null, raw);
+                        break;
+                    default:
+                        break;
+                }
+            }
 
             // try transfort 2 year to 4 year digits
             int finalYear;
@@ -170,7 +267,10 @@ namespace ValidatorSam.Converters
             // check days in month
             int maxDays = DateTime.DaysInMonth(finalYear, month);
             if (day > maxDays)
-                return ConverterResult.Error<DateTime?>($"Month no contains {day} days", null, raw);
+            {
+                string msg = string.Format(ValidatorLocalization.Resolve.StringMonthIsOverflow, maxDays);
+                return ConverterResult.Error<DateTime?>(msg, null, raw);
+            }
 
             try
             {
@@ -186,12 +286,13 @@ namespace ValidatorSam.Converters
         /// Very rough parser
         /// </summary>
         internal static void ReadInputAndLittleParse(ReadOnlySpan<char> input, ReadOnlySpan<char> StringFormat,
-            char[] allowSpecialChars,
+            CacheItem chacheItem,
             ref StackStringBuilder50 outputRaw,
             ref BundleDate result)
         {
             var readyToParse = new ChainBuilder();
             int maskoffset = 0;
+            char[] allowSpecialChars = chacheItem.AllowedChars;
 
             char inputChar;
             var maskCharType = MaskCharType.None;
@@ -204,7 +305,7 @@ namespace ValidatorSam.Converters
                 if (i + maskoffset < StringFormat.Length)
                     maskChar = StringFormat[i + maskoffset];
                 else
-                    maskChar = default;
+                    break; // TODO В будущем отладить когда пользователь вводит текст который длинее маски, но при этом содержит дату
 
                 maskCharType = GetMaskCharType(maskChar);
                 bool isMaskDigit = maskCharType != MaskCharType.None;
@@ -318,7 +419,7 @@ namespace ValidatorSam.Converters
         {
             foreach (char c in allowSpecialChars)
             {
-                if (c == inputChar) 
+                if (c == inputChar)
                     return true;
             }
             return false;
@@ -444,6 +545,37 @@ namespace ValidatorSam.Converters
             public int hour;
             public int minute;
             public int sec;
+
+            public int InvalidMembersCount
+            {
+                get
+                {
+                    int m = 0;
+                    if (year == -1) m++;
+                    if (month == -1) m++;
+                    if (day == -1) m++;
+                    if (hour == -1) m++;
+                    if (minute == -1) m++;
+                    if (sec == -1) m++;
+                    return m;
+                }
+            }
+        }
+
+        internal class CacheItem
+        {
+            public char[] AllowedChars { get; set; }
+            public DateTimeMembers[] FormatQueue { get; set; }
+        }
+
+        internal enum DateTimeMembers
+        {
+            Day,
+            Month,
+            Year,
+            Hour,
+            Minute,
+            Second,
         }
     }
 #nullable disable

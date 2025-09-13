@@ -62,6 +62,9 @@ namespace ValidatorSam.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<char> AsSpan()
         {
+            if (_length <= 0)
+                return ReadOnlySpan<char>.Empty;
+
             fixed (char* ptr = _buffer)
             {
                 return new ReadOnlySpan<char>(ptr, _length);
@@ -71,6 +74,9 @@ namespace ValidatorSam.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override string ToString()
         {
+            if (_length <= 0)
+                return "";
+
             fixed (char* ptr = _buffer)
             {
                 return new string(ptr, 0, _length);

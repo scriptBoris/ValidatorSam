@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using ValidatorSam;
 using ValidatorSam.Converters;
+using ValidatorSam.Core;
+using ValidatorSam.Localizations;
 
 namespace ValidatorTests
 {
@@ -241,6 +243,72 @@ namespace ValidatorTests
             Assert.AreEqual("25.11.20", DateArrival.RawValue);
             Assert.AreEqual(new DateTime(2020, 11, 25), DateArrival.Value);
             Assert.IsTrue(DateArrival.IsValid);
+        }
+
+        [TestMethod]
+        public void YearOverflow()
+        {
+            DateArrival.RawValue = "11.11.99999";
+            Assert.AreEqual("11.11.9999", DateArrival.RawValue);
+            Assert.AreEqual(new DateTime(9999, 11, 11), DateArrival.Value);
+            Assert.IsTrue(DateArrival.IsValid);
+        }
+
+        [TestMethod]
+        public void InvalidDateTextError()
+        {
+            DateArrival.RawValue = "2";
+            Assert.AreEqual("2", DateArrival.RawValue);
+            Assert.AreEqual(null, DateArrival.Value);
+            Assert.IsFalse(DateArrival.IsValid);
+
+            var loc = new Localization_EN();
+            Assert.AreEqual(loc.StringInvalidInputForDateTime, DateArrival.TextError);
+        }
+
+        [TestMethod]
+        public void InvalidDateTextError2()
+        {
+            DateArrival.RawValue = "Ы";
+            Assert.AreEqual("", DateArrival.RawValue);
+            Assert.AreEqual(null, DateArrival.Value);
+            Assert.IsFalse(DateArrival.IsValid);
+
+            var loc = new Localization_EN();
+            Assert.AreEqual(loc.StringInvalidInputForDateTime, DateArrival.TextError);
+        }
+
+        [TestMethod]
+        public void TextErrorMonth()
+        {
+            DateArrival.RawValue = "11.99";
+            Assert.AreEqual("11.99", DateArrival.RawValue);
+            Assert.AreEqual(null, DateArrival.Value);
+            Assert.IsFalse(DateArrival.IsValid);
+
+            var loc = new Localization_EN();
+            Assert.AreEqual(loc.StringInvalidMonth, DateArrival.TextError);
+        }
+
+        [TestMethod]
+        public void TextErrorMonthOverflow()
+        {
+            DateArrival.RawValue = "31.02.1991";
+            Assert.AreEqual("31.02.1991", DateArrival.RawValue);
+            Assert.AreEqual(null, DateArrival.Value);
+            Assert.IsFalse(DateArrival.IsValid);
+
+            var loc = new Localization_EN();
+            string error = string.Format(loc.StringMonthIsOverflow, 28);
+            Assert.AreEqual(error, DateArrival.TextError);
+        }
+
+        [TestMethod]
+        public void TextErrorYear()
+        {
+            DateArrival.RawValue = "11.11.Ы";
+            var loc = new Localization_EN();
+            Assert.AreEqual(loc.StringInvalidYear, DateArrival.TextError);
         }
     }
 }

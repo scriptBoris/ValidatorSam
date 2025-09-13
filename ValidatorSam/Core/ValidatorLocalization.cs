@@ -86,6 +86,46 @@ namespace ValidatorSam.Core
         /// Required
         /// </summary>
         public abstract string StringRequired { get; }
+
+        /// <summary>
+        /// Please enter the date in the format
+        /// </summary>
+        public abstract string StringInvalidInputForDateTime { get; }
+
+        /// <summary>
+        /// The entered month cannot contain more than {0} days
+        /// </summary>
+        public abstract string StringMonthIsOverflow { get; }
+
+        /// <summary>
+        /// Invalid year
+        /// </summary>
+        public abstract string StringInvalidYear { get; }
+
+        /// <summary>
+        /// Invalid month
+        /// </summary>
+        public abstract string StringInvalidMonth { get; }
+
+        /// <summary>
+        /// Invalid day
+        /// </summary>
+        public abstract string StringInvalidDay { get; }
+
+        /// <summary>
+        /// Invalid hour
+        /// </summary>
+        public abstract string StringInvalidHour { get; }
+
+        /// <summary>
+        /// Invalid minute
+        /// </summary>
+        public abstract string StringInvalidMinute { get; }
+
+        /// <summary>
+        /// Invalid second
+        /// </summary>
+        public abstract string StringInvalidSecond { get; }
     }
 }
 #nullable disable
