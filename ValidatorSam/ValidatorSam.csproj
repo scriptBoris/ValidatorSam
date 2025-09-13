@@ -10,7 +10,7 @@
 		<PackageIcon>icon.png</PackageIcon>
 		<RepositoryUrl>https://github.com/scriptBoris/ValidatorSam</RepositoryUrl>
 		<PackageTags>ILWeaving, Fody, Cecil, AOP, Validation, Validator, MVVM</PackageTags>
-		<Version>1.7.0-beta4</Version>
+		<Version>1.7.0-beta5</Version>
 		<WeaverPropsFile>$(MSBuildThisFileDirectory)Weaver.props</WeaverPropsFile>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>

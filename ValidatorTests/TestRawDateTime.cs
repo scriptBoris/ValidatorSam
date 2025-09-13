@@ -180,9 +180,8 @@ namespace ValidatorTests
         [TestMethod]
         public void StandaloneConverter()
         {
-            var conv = new DateTimeConverter("dd.MM.yyyy");
             var culture = CultureInfo.InvariantCulture;
-            var res = conv.MasterParse("28.11.2022", culture, "dd.MM.yyyy");
+            var res = DateTimeBaseConverter.MasterParse("28.11.2022", culture, "dd.MM.yyyy");
 
             Assert.AreEqual(new DateTime(2022, 11, 28), res.Result);
             Assert.AreEqual("28.11.2022", res.RawResult);
@@ -191,9 +190,8 @@ namespace ValidatorTests
         [TestMethod]
         public void StandaloneConverter2()
         {
-            var conv = new DateTimeConverter("dd.MM.yyyy");
             var culture = CultureInfo.InvariantCulture;
-            var res = conv.MasterParse("28.1.2022", culture, "dd.MM.yyyy");
+            var res = DateTimeBaseConverter.MasterParse("28.1.2022", culture, "dd.MM.yyyy");
 
             Assert.AreEqual(new DateTime(2022, 1, 28), res.Result);
             Assert.AreEqual("28.1.2022", res.RawResult);
@@ -202,9 +200,8 @@ namespace ValidatorTests
         [TestMethod]
         public void StandaloneConverter3()
         {
-            var conv = new DateTimeConverter("dd.MM.yyyy");
             var culture = CultureInfo.InvariantCulture;
-            var res = conv.MasterParse("28.ы1.2022", culture, "dd.MM.yyyy");
+            var res = DateTimeBaseConverter.MasterParse("28.ы1.2022", culture, "dd.MM.yyyy");
 
             Assert.AreEqual(new DateTime(2022, 1, 28), res.Result);
             Assert.AreEqual("28.1.2022", res.RawResult);

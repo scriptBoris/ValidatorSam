@@ -32,7 +32,7 @@ namespace ValidatorSam.Converters
         /// <summary>
         /// Universal
         /// </summary>
-        public ConverterResult<DateTime?> MasterParse(ReadOnlySpan<char> rawValue, CultureInfo culture, string stringFormat)
+        public static ConverterResult<DateTime?> MasterParse(ReadOnlySpan<char> rawValue, CultureInfo culture, string stringFormat)
         {
             switch (stringFormat)
             {
@@ -100,7 +100,7 @@ namespace ValidatorSam.Converters
         /// <summary>
         /// Post-parser
         /// </summary>
-        internal ConverterResult<DateTime?> ParseInt(CultureInfo culture, ref StackStringBuilder50 rawStringBuilder, ref BundleDate bdate)
+        internal static ConverterResult<DateTime?> ParseInt(CultureInfo culture, ref StackStringBuilder50 rawStringBuilder, ref BundleDate bdate)
         {
             string raw = rawStringBuilder.ToString();
             int year = bdate.year;
@@ -153,7 +153,7 @@ namespace ValidatorSam.Converters
         /// <summary>
         /// Very rough parser
         /// </summary>
-        internal void ReadInputAndLittleParse(ReadOnlySpan<char> input, ReadOnlySpan<char> StringFormat,
+        internal static void ReadInputAndLittleParse(ReadOnlySpan<char> input, ReadOnlySpan<char> StringFormat,
             ref StackStringBuilder50 outputRaw,
             ref BundleDate result)
         {
@@ -278,7 +278,7 @@ namespace ValidatorSam.Converters
             }
         }
 
-        private MaskCharType GetMaskCharType(char c)
+        private static MaskCharType GetMaskCharType(char c)
         {
             switch (c)
             {
