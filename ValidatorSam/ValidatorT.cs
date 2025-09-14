@@ -507,6 +507,11 @@ namespace ValidatorSam
             }
             else
             {
+                if (_isGenericStringType)
+                {
+                    return newest?.ToString() ?? "";
+                }
+
                 return "";
             }
         }
@@ -565,7 +570,18 @@ namespace ValidatorSam
             }
             else
             {
-                return ConverterResult.Ignore<T>();
+                if (_isGenericStringType)
+                {
+                    string text = newRaw.ToString() ?? "";
+                    if (text is T gtext)
+                        return ConverterResult.Success<T>(gtext, newRaw);
+                    else
+                        throw new InvalidOperationException("Impossible code");
+                }
+                else
+                {
+                    return ConverterResult.Ignore<T>();
+                }
             }
         }
     }

@@ -105,5 +105,27 @@ namespace ValidatorTests
             Assert.AreEqual("123", rawUI);
             Assert.AreEqual(true, OrderNumber.IsValid);
         }
+
+        public Validator<string> Comment => Validator<string>.Build();
+
+        // Тест на эквивалентность работы Value & RawValue
+        [TestMethod]
+        public void TestValueAndRaw()
+        {
+            Comment.RawValue = "H";
+            Assert.AreEqual("H", Comment.RawValue);
+            Assert.AreEqual("H", Comment.Value);
+            Assert.IsTrue(Comment.IsValid);
+        }
+
+        // Тест на эквивалентность работы Value & RawValue
+        [TestMethod]
+        public void TestValueAndRaw2()
+        {
+            Comment.Value = "H";
+            Assert.AreEqual("H", Comment.RawValue);
+            Assert.AreEqual("H", Comment.Value);
+            Assert.IsTrue(Comment.IsValid);
+        }
     }
 }
