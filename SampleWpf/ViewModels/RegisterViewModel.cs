@@ -18,21 +18,21 @@ namespace SampleWpf.ViewModels
     public class RegisterViewModel : BaseViewModel
     {
         public Validator<string> Email => Validator<string>.Build()
-            .UsingRule(x => MailAddress.TryCreate(x, out _), "No valid email")
-            .UsingRule(x => !x.Contains(' '), "Don't use spaces in email")
+            .UsingRule(x => MailAddress.TryCreate(x.Value, out _), "No valid email")
+            .UsingRule(x => !x.Value.Contains(' '), "Don't use spaces in email")
             .UsingRequired();
 
         public Validator<int?> UserAge => Validator<int?>.Build()
-            .UsingRule(x => x >= 18, "User must be of legal age")
+            .UsingRule(x => x.Value >= 18, "User must be of legal age")
             .UsingLimitations(0, 100);
 
         public Validator<string> Login => Validator<string>.Build()
-            .UsingRule(x=> !x.Contains(' '), "Don't use spaces in login")
+            .UsingRule(x=> !x.Value.Contains(' '), "Don't use spaces in login")
             .UsingTextLimit(0, 20)
             .UsingRequired();
 
         public Validator<string> Password => Validator<string>.Build()
-            .UsingRule(x => !x.Contains(' '), "Don't use spaces in password")
+            .UsingRule(x => !x.Value.Contains(' '), "Don't use spaces in password")
             .UsingRequired();
 
         public ICommand CommandLogin => new Command(() =>

@@ -21,7 +21,7 @@
                 <TextBox.Style>
                     <Style TargetType="TextBox">
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding Email.IsValid}"
+                            <DataTrigger Binding="{Binding Email.IsVisualValid}"
                                          Value="False">
                                 <Setter Property="BorderBrush" Value="Red"/>
                             </DataTrigger>

@@ -1,5 +1,7 @@
-﻿using System;
+﻿using SampleWpf.ViewModels;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,6 +24,16 @@ namespace SampleWpf.Views
         public LoginWindow()
         {
             InitializeComponent();
+            this.DataContextChanged += (o, e) =>
+            {
+                var vm = (LoginViewModel)e.NewValue;
+                vm.Email.PropertyChanged += Email_PropertyChanged;
+            };
+        }
+
+        private void Email_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            Debug.WriteLine($"Email property changed: {e.PropertyName}");
         }
     }
 }
