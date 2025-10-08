@@ -37,7 +37,7 @@ namespace ValidatorSam
     /// <summary>
     /// Base class validator
     /// </summary>
-    public abstract class Validator : INotifyPropertyChanged
+    public abstract class Validator : INotifyPropertyChanged, IValidatorBroadcaster
     {
         internal ISourceRequired? _required;
         internal bool _isEnabled = true;

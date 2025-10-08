@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using ValidatorSam.Core;
 
 #nullable enable
 namespace ValidatorSam
@@ -12,7 +13,7 @@ namespace ValidatorSam
     /// A class that groups several validators together.
     /// For example, it can be used to make a button active only when all validators are valid.
     /// </summary>
-    public class ValidatorGroup : INotifyPropertyChanged, INotifyDataErrorInfo, IDisposable
+    public class ValidatorGroup : INotifyPropertyChanged, INotifyDataErrorInfo, IValidatorBroadcaster, IDisposable
     {
         private readonly List<Validator> _validators;
 
@@ -27,6 +28,12 @@ namespace ValidatorSam
         /// </summary>
         public event PropertyChangedEventHandler? PropertyChanged;
 #pragma warning restore CS0067
+
+        /// <inheritdoc/>
+        public event EventHandlerSure<ValidatorErrorTextArgs>? ErrorChanged;
+
+        /// <inheritdoc/>
+        public event EventHandlerSure<bool>? EnabledChanged;
 
         /// <summary>
         /// Empty validator group
@@ -47,6 +54,8 @@ namespace ValidatorSam
             foreach (var item in _validators)
             {
                 item.ValidationChanged += Item_ValidationChanged;
+                item.ErrorChanged += Item_ErrorChanged;
+                item.EnabledChanged += Item_EnabledChanged;
             }
 
             int errors = 0;
@@ -67,6 +76,43 @@ namespace ValidatorSam
 
             HasErrors = errors > 0;
             IsValid = valids == total && total > 0;
+            IsEnabled = total > 0;
+        }
+
+        private void Item_EnabledChanged(Validator invoker, bool args)
+        {
+            bool any = _validators.Any(x => x.IsEnabled);
+            EnabledChanged?.Invoke(invoker, any);
+            IsEnabled = any;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsEnabled)));
+        }
+
+        private void Item_ErrorChanged(Validator invoker, ValidatorErrorTextArgs args)
+        {
+            if (ErrorChanged == null)
+                return;
+
+            if (args.IsShow)
+            {
+                ErrorChanged.Invoke(invoker, args);
+            }
+            else
+            {
+                string? firstError = null;
+                foreach (var item in _validators)
+                {
+                    if (!item.IsEnabled)
+                        continue;
+
+                    if (item.TextError != null)
+                    {
+                        firstError = item.TextError;
+                        break;
+                    }
+                }
+
+                ErrorChanged.Invoke(invoker, ValidatorErrorTextArgs.Calc(firstError != null, firstError));
+            }
         }
 
         private void Item_ValidationChanged(Validator invoker, bool isValid)
@@ -92,6 +138,7 @@ namespace ValidatorSam
 
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasErrors)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsValid)));
+            ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(invoker.Name));
         }
 
         /// <summary>
@@ -103,6 +150,11 @@ namespace ValidatorSam
         /// Reports that all enabled validators are free of errors.
         /// </summary>
         public bool IsValid { get; private set; }
+
+        /// <summary>
+        /// Flag indicating that at least one validator in the group is enabled
+        /// </summary>
+        public bool IsEnabled { get; private set; }
 
         IEnumerable INotifyDataErrorInfo.GetErrors(string propertyName)
         {
