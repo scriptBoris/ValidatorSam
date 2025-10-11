@@ -427,6 +427,22 @@ namespace ValidatorSam
             if (!IsEnabled)
                 goto skip;
 
+            // Hight priority
+            if (useValidation)
+            {
+                if (_externalRule != null)
+                {
+                    var arg = new RuleArgs<object?>(genericValue, rawValue, this);
+                    var res = _externalRule(arg);
+                    if (!res.IsSuccess)
+                    {
+                        isValid = false;
+                        textError = res.ErrorText;
+                        goto skip;
+                    }
+                }
+            }
+
             if (IsRequired)
             {
                 if (isEmpty)

@@ -35,6 +35,11 @@ namespace ValidatorSam
     public delegate bool RuleHandler<T>(RuleArgs<T> args);
 
     /// <summary>
+    /// Delegate for external rule
+    /// </summary>
+    public delegate ExternalRuleResult ExternalRuleHandler(RuleArgs<object?> args);
+
+    /// <summary>
     /// Base class validator
     /// </summary>
     public abstract class Validator : INotifyPropertyChanged, IValidatorBroadcaster
@@ -44,6 +49,7 @@ namespace ValidatorSam
         internal bool _isGenericStringType;
         internal string? _customName;
         internal Payload? _payload;
+        internal ExternalRuleHandler? _externalRule;
         private string? _textError;
         private bool _isValid;
         private string _name = "undefined";
@@ -359,6 +365,15 @@ namespace ValidatorSam
                 bool isEquals = InitValue!.Equals(Value);
                 return !isEquals;
             }
+        }
+
+        /// <summary>
+        /// Adding an external rule that will be taken into account during validation 
+        /// with the highest priority
+        /// </summary>
+        public void SetExternalRule(ExternalRuleHandler? externalRuleDelegate)
+        {
+            _externalRule = externalRuleDelegate;
         }
 
         /// <summary>
