@@ -77,13 +77,13 @@ public class TestExternalRules
     {
         private readonly Dictionary<string, MockCity> _city;
         private readonly Validator _validator;
-        private string _userInput = "";
         private MockCity? _typedCity;
 
         public TagController(Validator validator)
         {
             _city = new Dictionary<string, MockCity>(StringComparer.OrdinalIgnoreCase);
             validator.SetExternalRule(Handle);
+            validator.ValueChanged += Validator_ValueChanged;
             string[] cities =
             [
                 "Tokio",
@@ -101,6 +101,11 @@ public class TestExternalRules
             }
 
             _validator = validator;
+        }
+
+        private void Validator_ValueChanged(Validator invoker, ValidatorValueChangedArgs args)
+        {
+            throw new InvalidOperationException("Значение не должно меняться!");
         }
 
         private ExternalRuleResult Handle(RuleArgs<object?> args)
@@ -125,10 +130,10 @@ public class TestExternalRules
 
         public string UserInput
         {
-            get => _userInput;
+            get => _validator.RawValue;
             set
             {
-                _userInput = value;
+                _validator.RawValue = value;
                 if (_city.TryGetValue(value, out var matchCity))
                 {
                     TypedCity = matchCity;

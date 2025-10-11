@@ -181,6 +181,7 @@ namespace ValidatorSam
 
             var convertResult = TryConvertRawToValue(rawValue, value);
             bool noError;
+            bool canSetValue = true;
             T result;
             switch (convertResult.ResultType)
             {
@@ -203,6 +204,7 @@ namespace ValidatorSam
                     _rawValue = value.ToString();
                     result = default;
                     noError = true;
+                    canSetValue = false;
                     break;
                 default:
                     throw new NotImplementedException();
@@ -211,7 +213,7 @@ namespace ValidatorSam
             bool notEqualValues = !Equals(_value, result);
             bool notEqualRawValues = !rawValue.SequenceEqual(input);
 
-            if (noError && (notEqualValues || notEqualRawValues))
+            if (noError && canSetValue && (notEqualValues || notEqualRawValues))
                 SetValue(_value, result, ValueInvokers.RawValue, true, true);
 
             if (notEqualRawValues)
@@ -578,8 +580,9 @@ namespace ValidatorSam
         {
             if (_defaultCastConverter != null)
             {
+                // TODO Очень странный if. В будущем эту логику перенести в конвертеры!
                 if (newRaw.Length == 0 && CanNotBeNull)
-                    return ConverterResult.Ignore<T>();
+                    return ConverterResult.Success<T>(default!, newRaw);
 
                 var castResult = _defaultCastConverter.RawToValue(newRaw, oldRaw, _value, this);
                 return castResult;
