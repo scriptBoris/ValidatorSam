@@ -445,22 +445,6 @@ namespace ValidatorSam
                 }
             }
 
-            if (IsRequired)
-            {
-                if (isEmpty)
-                {
-                    isValid = false;
-                    string requiredText = _required!.GetRequiredError();
-
-                    if (requiredText == ValidatorBuilder<object>.defaultRequired)
-                        textError = ValidatorLocalization.Resolve.StringRequired;
-                    else
-                        textError = requiredText;
-
-                    goto skip;
-                }
-            }
-
             if (invoker == CheckValidInvokers.External)
             {
                 var parse = TryConvertRawToValue("", RawValue);
@@ -474,6 +458,22 @@ namespace ValidatorSam
                 else
                 {
                     _convertError = null;
+                }
+            }
+
+            if (IsRequired)
+            {
+                if (isEmpty)
+                {
+                    isValid = false;
+                    string requiredText = _required!.GetRequiredError();
+
+                    if (requiredText == ValidatorBuilder<object>.defaultRequired)
+                        textError = ValidatorLocalization.Resolve.StringRequired;
+                    else
+                        textError = requiredText;
+
+                    goto skip;
                 }
             }
 
