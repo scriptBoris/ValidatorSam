@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ValidatorSam.Core
-{
 #nullable enable
+namespace ValidatorSam
+{
     /// <summary>
     /// Container for external rule result
     /// </summary>
@@ -47,5 +47,5 @@ namespace ValidatorSam.Core
             };
         }
     }
-#nullable disable
 }
+#nullable disable

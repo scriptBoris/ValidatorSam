@@ -9,7 +9,7 @@ namespace ValidatorSam
     /// </summary>
     public readonly struct RuleArgs<T>
     {
-        internal RuleArgs(T value, string rawValue, Validator validator)
+        public RuleArgs(T value, string rawValue, IValidator validator)
         {
             Value = value;
             RawValue = rawValue;
@@ -29,6 +29,6 @@ namespace ValidatorSam
         /// <summary>
         /// The Validator who is invoke current rule
         /// </summary>
-        public Validator Validator { get; }
+        public IValidator Validator { get; }
     }
 }

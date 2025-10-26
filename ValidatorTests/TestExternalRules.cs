@@ -103,7 +103,7 @@ public class TestExternalRules
             _validator = validator;
         }
 
-        private void Validator_ValueChanged(Validator invoker, ValidatorValueChangedArgs args)
+        private void Validator_ValueChanged(IValidator invoker, ValidatorValueChangedArgs args)
         {
             throw new InvalidOperationException("Значение не должно меняться!");
         }

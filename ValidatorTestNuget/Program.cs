@@ -7,6 +7,8 @@
             Console.WriteLine("Programm is running!");
 
             var mock = new MockClass();
+            mock.Make();
+
             bool result = mock.CheckValid();
             if (result)
             {

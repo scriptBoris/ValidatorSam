@@ -14,29 +14,29 @@ namespace ValidatorSam
         /// <summary>
         /// Invoker
         /// </summary>
-        public Validator Validator { get; internal set; }
+        public IValidator Validator { get; set; }
 
         /// <summary>
         /// Old user input typed text
         /// </summary>
-        public string OldRawValue { get; internal set; }
+        public string OldRawValue { get; set; }
 
         /// <summary>
         /// New user input typed text
         /// </summary>
-        public string NewRawValue { get; internal set; }
+        public string NewRawValue { get; set; }
 
         /// <summary>
         /// Old validated value
         /// </summary>
         [AllowNull]
-        public T OldValue { get; internal set; }
+        public T OldValue { get; set; }
 
         /// <summary>
         /// New value if generic type of Validator is not String
         /// </summary>
         [AllowNull]
-        public T NewValue { get; internal set; }
+        public T NewValue { get; set; }
     }
 }
 #nullable disable

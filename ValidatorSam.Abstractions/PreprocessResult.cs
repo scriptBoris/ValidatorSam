@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 #nullable enable
-namespace ValidatorSam.Core
+namespace ValidatorSam
 {
     /// <summary>
     /// PreprocessResultType

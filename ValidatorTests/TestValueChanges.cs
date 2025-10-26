@@ -137,7 +137,7 @@ namespace ValidatorTests
             Assert.AreEqual(true, _valueChanged_3);
         }
 
-        private void MockObjectProperty3_ValueChanged(Validator invoker, ValidatorValueChangedArgs args)
+        private void MockObjectProperty3_ValueChanged(IValidator invoker, ValidatorValueChangedArgs args)
         {
             _valueChanged_3 = true;
         }

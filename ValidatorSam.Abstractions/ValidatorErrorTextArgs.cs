@@ -19,8 +19,9 @@ namespace ValidatorSam
         /// </summary>
         public string ErrorText { get; private set; }
 
-        internal static ValidatorErrorTextArgs Hide => new ValidatorErrorTextArgs { IsShow = false, ErrorText = null };
-        internal static ValidatorErrorTextArgs Calc(bool isShow, string text)
+        public static ValidatorErrorTextArgs Hide => new ValidatorErrorTextArgs { IsShow = false, ErrorText = null };
+
+        public static ValidatorErrorTextArgs Calc(bool isShow, string text)
         {
             if (isShow)
             {

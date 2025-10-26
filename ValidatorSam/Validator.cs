@@ -1,48 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using ValidatorSam.Core;
 using ValidatorSam.Internal;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Security.Cryptography;
 
 #nullable enable
 namespace ValidatorSam
 {
     /// <summary>
-    /// Default delegate validator
-    /// </summary>
-    public delegate void EventHandlerSure<T>(Validator invoker, T args);
-
-    /// <summary>
-    /// Default delegate validator
-    /// </summary>
-    public delegate void EventHandlerSure(Validator invoker);
-
-    /// <summary>
-    /// Delegate for preprocess input value
-    /// </summary>
-    public delegate PreprocessResult<T> PreprocessorHandler<T>(ValidatorPreprocessArgs<T> args);
-
-    /// <summary>
-    /// Delegate for rules
-    /// </summary>
-    public delegate bool RuleHandler<T>(RuleArgs<T> args);
-
-    /// <summary>
-    /// Delegate for external rule
-    /// </summary>
-    public delegate ExternalRuleResult ExternalRuleHandler(RuleArgs<object?> args);
-
-    /// <summary>
     /// Base class validator
     /// </summary>
-    public abstract class Validator : INotifyPropertyChanged, IValidatorBroadcaster
+    public abstract class Validator : IValidator, INotifyPropertyChanged, IValidatorBroadcaster
     {
         internal ISourceRequired? _required;
         internal bool _isEnabled = true;
@@ -55,64 +26,40 @@ namespace ValidatorSam
         private string _name = "undefined";
         private readonly object _lock = new object();
 
-        /// <summary>
-        /// Implementation INotifyPropertyChanged event
-        /// </summary>
+        /// <inheritdoc/>
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        /// <summary>
-        /// Fires when this validator has encountered an error or the error 
-        /// has disappeared (after entering a value or manually validating)
-        /// </summary>
+        /// <inheritdoc/>
         public event EventHandlerSure<ValidatorErrorTextArgs>? ErrorChanged;
 
-        /// <summary>
-        /// Fires when a value has been changed 
-        /// </summary>
+        /// <inheritdoc/>
         public event EventHandlerSure<ValidatorValueChangedArgs>? ValueChanged;
 
-        /// <summary>
-        /// Fires when a property IsEnabled has been changed
-        /// </summary>
+        /// <inheritdoc/>
         public event EventHandlerSure<bool>? EnabledChanged;
 
-        /// <summary>
-        /// Fires when a property IsValid has been changed
-        /// </summary>
+        /// <inheritdoc/>
         public event EventHandlerSure<bool>? ValidationChanged;
 
         #region props
-        /// <summary>
-        /// This property is for binding and read input value
-        /// </summary>
+        /// <inheritdoc/>
         public object? Value
         {
             get => GenericGetValue();
             set => GenericSetValue(value);
         }
 
-        /// <summary>
-        /// This property is for text based field binding only. <br/>
-        /// Such as scenario:  <br/>
-        /// - string: write user name <br/>
-        /// - int: write number of members in the family <br/>
-        /// - double: manual input of the weight of the load
-        /// </summary>
+        /// <inheritdoc/>
         public abstract string RawValue { get; set; }
         
-        /// <summary>
-        /// The value that was specified during Building of the validator
-        /// </summary>
+        /// <inheritdoc/>
         public object? InitValue 
         {
             get; 
             internal set; 
         }
 
-        /// <summary>
-        /// Indicates whether the validator is enabled or not. 
-        /// Specify FALSE and in all checks of this validator it will return IsValid = true
-        /// </summary>
+        /// <inheritdoc/>
         public bool IsEnabled
         {
             get => _isEnabled;
@@ -127,9 +74,7 @@ namespace ValidatorSam
             }
         }
 
-        /// <summary>
-        /// Payload that can be used for different purposes
-        /// </summary>
+        /// <inheritdoc/>
         public IPayload Payload 
         {
             get
@@ -143,36 +88,19 @@ namespace ValidatorSam
             }
         }
 
-        /// <summary>
-        /// Special string for formating Value to RawValue, and reverse;
-        /// <br/>
-        /// If it contains null, then converters can interpret the format themselves. 
-        /// </summary>
+        /// <inheritdoc/>
         public abstract string? StringFormat { get; set; }
 
-        /// <summary>
-        /// Special string for formating Value to RawValue, and reverse;
-        /// <br/>
-        /// If it contains null, then converters can interpret the format themselves. 
-        /// </summary>
+        /// <inheritdoc/>
         public abstract CultureInfo? CultureInfo { get; set; }
 
-        /// <summary>
-        /// Indicates whether the validator contains a value or not
-        /// </summary>
+        /// <inheritdoc/>
         public abstract bool HasValue { get; }
 
-        /// <summary>
-        /// Indicates that any data must be entered (not null, not empty string, not white spaces)
-        /// </summary>
+        /// <inheritdoc/>
         public bool IsRequired => _required != null;
 
-        /// <summary>
-        /// Validation flag 
-        /// <br/>
-        /// By default this property contains False;
-        /// It will be changed if Value, RawValue is changed or manual validation is called
-        /// </summary>
+        /// <inheritdoc/>
         public bool IsValid
         {
             get => _isValid;
@@ -183,18 +111,10 @@ namespace ValidatorSam
             }
         }
 
-        /// <summary>
-        /// Humal-like validation flag for easy XAML binding.
-        /// <br/>
-        /// If <c>Value</c> or <c>RawValue</c> is changed or manual validation is called, this 
-        /// property will return IsValid;
-        /// Otherwise: this property will return True;
-        /// </summary>
+        /// <inheritdoc/>
         public abstract bool IsVisualValid { get; }
 
-        /// <summary>
-        /// Contains first match error
-        /// </summary>
+        /// <inheritdoc/>
         public string? TextError
         {
             get => _textError;
@@ -205,17 +125,7 @@ namespace ValidatorSam
             }
         }
 
-        /// <summary>
-        /// The name of the validator. 
-        /// If you use automatic BUILD generation, the Fody postprocessor will assign 
-        /// the name of the property that the validator is bound to.
-        /// Such as: 
-        /// <code>
-        /// public Validator{string} UserName => Validator{string}.Build()...
-        /// </code>
-        /// Will used UserName
-        /// P.S. {} - is instead of triangle brackets, sorry
-        /// </summary>
+        /// <inheritdoc/>
         public string Name
         {
             get => _customName ?? _name;
@@ -224,7 +134,6 @@ namespace ValidatorSam
                 _name = value;
             }
         }
-        #endregion props
 
         /// <summary>
         /// Indicate that type T is non nullable struct type
@@ -235,6 +144,7 @@ namespace ValidatorSam
         /// Internal
         /// </summary>
         protected abstract int RuleCount { get; }
+        #endregion props
 
         /// <summary>
         /// Получает _value;

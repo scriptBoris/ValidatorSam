@@ -83,13 +83,13 @@ namespace ValidatorTests
             Assert.IsTrue(isAdded);
         }
 
-        private void Payload_PayloadRemoved(Validator validator, ValidatorSam.Core.IPayload payload, string key, object removed)
+        private void Payload_PayloadRemoved(IValidator validator, IPayload payload, string key, object removed)
         {
             if (key == "item1" && (int)removed! == 1)
                 isDeleted = true;
         }
 
-        private void Payload_PayloadAdded(Validator validator, ValidatorSam.Core.IPayload payload, string key, object added)
+        private void Payload_PayloadAdded(IValidator validator, IPayload payload, string key, object added)
         {
             isAdded = true;
         }

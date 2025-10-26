@@ -79,7 +79,7 @@ namespace ValidatorSam
             IsEnabled = total > 0;
         }
 
-        private void Item_EnabledChanged(Validator invoker, bool args)
+        private void Item_EnabledChanged(IValidator invoker, bool args)
         {
             bool any = _validators.Any(x => x.IsEnabled);
             EnabledChanged?.Invoke(invoker, any);
@@ -87,7 +87,7 @@ namespace ValidatorSam
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsEnabled)));
         }
 
-        private void Item_ErrorChanged(Validator invoker, ValidatorErrorTextArgs args)
+        private void Item_ErrorChanged(IValidator invoker, ValidatorErrorTextArgs args)
         {
             if (ErrorChanged == null)
                 return;
@@ -115,7 +115,7 @@ namespace ValidatorSam
             }
         }
 
-        private void Item_ValidationChanged(Validator invoker, bool isValid)
+        private void Item_ValidationChanged(IValidator invoker, bool isValid)
         {
             int errors = 0;
             int valids = 0;

@@ -11,7 +11,7 @@ namespace ValidatorSam
     /// </summary>
     public readonly struct ValidatorValueChangedArgs<T>
     {
-        internal ValidatorValueChangedArgs([AllowNull]T oldValue, [AllowNull] T newValue)
+        public ValidatorValueChangedArgs([AllowNull]T oldValue, [AllowNull] T newValue)
         {
             OldValue = oldValue;
             NewValue = newValue;

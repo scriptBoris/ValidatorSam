@@ -23,7 +23,7 @@ namespace ValidatorTests
             Assert.AreEqual(false, _isUserNameEnabled);
         }
 
-        private void Test1_EnabledChanged(Validator invoker, bool args)
+        private void Test1_EnabledChanged(IValidator invoker, bool args)
         {
             _isUserNameEnabled = args;
         }

@@ -24,7 +24,7 @@ namespace ValidatorTests.Supports
             }
         }
 
-        private void Value_ErrorChanged(Validator invoker, ValidatorErrorTextArgs args)
+        private void Value_ErrorChanged(IValidator invoker, ValidatorErrorTextArgs args)
         {
             HasError = args.IsShow;
             ErrorText = args.ErrorText;

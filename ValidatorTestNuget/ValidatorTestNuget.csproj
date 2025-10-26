@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ValidatorSam.Fody" Version="1.5.0" />
+	  <PackageReference Include="ValidatorSam.Fody" Version="1.7.0-beta13" />
   </ItemGroup>
 
 </Project>
