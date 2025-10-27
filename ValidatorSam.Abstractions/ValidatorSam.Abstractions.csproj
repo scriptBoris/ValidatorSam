@@ -8,7 +8,7 @@
 		<PackageOutputPath>$(SolutionDir)/Nuget</PackageOutputPath>
 		<PackageProjectUrl>https://github.com/scriptBoris/ValidatorSam</PackageProjectUrl>
 		<PackageIcon>icon.png</PackageIcon>
-		<PackageTags>ILWeaving, Fody, Cecil, AOP, Validation, Validator, MVVM</PackageTags>
+		<PackageTags>Validation, Validator, MVVM</PackageTags>
 		<Version>1.7.0-beta13</Version>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	</PropertyGroup>
