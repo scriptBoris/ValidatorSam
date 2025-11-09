@@ -13,7 +13,7 @@ namespace ValidatorSam
     /// Main Validator class
     /// </summary>
     /// <typeparam name="T">The type that will appear in checks and preprocessors</typeparam>
-    public class Validator<T> : Validator
+    public class Validator<T> : Validator, IValidator<T>
     {
         internal readonly List<IRuleItem<T>> _rules = new List<IRuleItem<T>>();
         internal readonly List<Action<ValidatorValueChangedArgs<T>>> _changeListeners = new List<Action<ValidatorValueChangedArgs<T>>>();
