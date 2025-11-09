@@ -122,6 +122,33 @@ namespace ValidatorSam
         /// Indicates that any data must be entered (not null, not empty string, not white spaces)
         /// </summary>
         bool IsRequired { get; }
+
+        /// <summary>
+        /// Manually checking the validator
+        /// </summary>
+        ValidatorResult CheckValid();
+
+        /// <summary>
+        /// If there is a visual error, then a manual validation check will be called. 
+        /// And if the validation is successful (no errors), then error will be removed.
+        /// </summary>
+        bool TryToRemoveError();
+
+        /// <summary>
+        /// The rat's method for handmade setup error
+        /// </summary>
+        void SetError(string textError);
+
+        /// <summary>
+        /// Checks if the current value is different from the initialized value
+        /// </summary>
+        bool CheckChanges();
+
+        /// <summary>
+        /// Adding an external rule that will be taken into account during validation 
+        /// with the highest priority
+        /// </summary>
+        void SetExternalRule(ExternalRuleHandler? externalRuleDelegate);
     }
 }
 #nullable disable

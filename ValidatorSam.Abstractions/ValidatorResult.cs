@@ -11,7 +11,7 @@ namespace ValidatorSam
     /// </summary>
     public readonly struct ValidatorResult
     {
-        internal ValidatorResult(bool isSuccess, string? errorText, string name)
+        public ValidatorResult(bool isSuccess, string? errorText, string name)
         {
             IsValid = isSuccess;
             TextError = errorText;

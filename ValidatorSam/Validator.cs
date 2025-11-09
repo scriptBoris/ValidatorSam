@@ -210,15 +210,10 @@ namespace ValidatorSam
         #endregion internal methods
 
         #region public methods
-        /// <summary>
-        /// Manually checking the validator
-        /// </summary>
+        /// <inheritdoc/>
         public abstract ValidatorResult CheckValid();
 
-        /// <summary>
-        /// If there is a visual error, then a manual validation check will be called. 
-        /// And if the validation is successful (no errors), then error will be removed.
-        /// </summary>
+        /// <inheritdoc/>
         public bool TryToRemoveError()
         {
             if (IsVisualValid)
@@ -248,14 +243,10 @@ namespace ValidatorSam
             }
         }
 
-        /// <summary>
-        /// The rat's method for handmade setup error
-        /// </summary>
+        /// <inheritdoc/>
         public abstract void SetError(string textError);
 
-        /// <summary>
-        /// Checks if the current value is different from the initialized value
-        /// </summary>
+        /// <inheritdoc/>
         public bool CheckChanges()
         {
             if (InitValue == null && Value == null)
@@ -277,10 +268,7 @@ namespace ValidatorSam
             }
         }
 
-        /// <summary>
-        /// Adding an external rule that will be taken into account during validation 
-        /// with the highest priority
-        /// </summary>
+        /// <inheritdoc/>
         public void SetExternalRule(ExternalRuleHandler? externalRuleDelegate)
         {
             _externalRule = externalRuleDelegate;

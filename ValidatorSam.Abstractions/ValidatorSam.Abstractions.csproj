@@ -9,7 +9,7 @@
 		<PackageProjectUrl>https://github.com/scriptBoris/ValidatorSam</PackageProjectUrl>
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageTags>Validation, Validator, MVVM</PackageTags>
-		<Version>1.7.0-beta15</Version>
+		<Version>1.7.0-beta16</Version>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	</PropertyGroup>
 
