@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using ValidatorSam.Core;
 
-namespace ValidatorSam.Core
+namespace ValidatorSam.Internal
 {
 #nullable enable
     internal class Payload : Dictionary<string, object>, IPayload

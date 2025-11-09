@@ -5,7 +5,10 @@ using System.Text;
 namespace ValidatorSam.Core
 {
 #nullable enable
-    public interface IValidatorBroadcaster
+    /// <summary>
+    /// Provides functionality for listening to validation and metadata-related events.
+    /// </summary>
+    public interface IEventBroadcaster
     {
         /// <summary>
         /// Fires when this validator has encountered an error or the error 

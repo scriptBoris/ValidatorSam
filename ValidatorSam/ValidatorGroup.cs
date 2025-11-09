@@ -13,7 +13,7 @@ namespace ValidatorSam
     /// A class that groups several validators together.
     /// For example, it can be used to make a button active only when all validators are valid.
     /// </summary>
-    public class ValidatorGroup : INotifyPropertyChanged, INotifyDataErrorInfo, IValidatorBroadcaster, IDisposable
+    public class ValidatorGroup : INotifyPropertyChanged, INotifyDataErrorInfo, IEventBroadcaster, IDisposable
     {
         private readonly List<Validator> _validators;
 
