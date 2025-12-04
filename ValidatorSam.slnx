@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/Lib/">
+    <Project Path="ValidatorSam.Abstractions/ValidatorSam.Abstractions.csproj" />
+    <Project Path="ValidatorSam.Fody/ValidatorSam.Fody.csproj" />
+    <Project Path="ValidatorSam/ValidatorSam.csproj">
+      <BuildDependency Project="ValidatorSam.Fody/ValidatorSam.Fody.csproj" />
+    </Project>
+  </Folder>
+  <Project Path="SampleMaui/SampleMaui.csproj">
+    <Deploy />
+  </Project>
+  <Project Path="SampleWpf/SampleWpf.csproj" />
+  <Project Path="ValidatorTestNuget/ValidatorTestNuget.csproj" />
+  <Project Path="ValidatorTests/ValidatorTests.csproj" />
+</Solution>
