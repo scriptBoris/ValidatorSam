@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using ValidatorSam.Internal;
-using ValidatorSam.Core;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Linq;
+using ValidatorSam.Core;
+using ValidatorSam.Internal;
 
 #nullable enable
 namespace ValidatorSam
@@ -599,6 +599,50 @@ namespace ValidatorSam
                     return ConverterResult.Ignore<T>();
                 }
             }
+        }
+
+        /// <summary>
+        /// Auto commit builder
+        /// </summary>
+        /// <param name="builderA">Validator constructor</param>
+        public static implicit operator Validator<T>(ValidatorBuilderBase<T> builderA)
+        {
+            var builder = (ValidatorBuilder<T>)builderA;
+            if (builder.Validator._defaultCastConverter == null)
+            {
+                var genericType = typeof(T);
+                builder.ResolveAutoCast(genericType);
+            }
+
+            var initValue = builder.Validator.InitValue;
+            string initRawValue = builder.Validator.HandleRawDefault(default, initValue);
+
+            builder.Validator._value = initValue;
+            builder.Validator._rawValue = initRawValue;
+
+            return builder.Validator;
+        }
+
+        /// <summary>
+        /// Auto commit builder
+        /// </summary>
+        /// <param name="builderA">Validator constructor</param>
+        public static implicit operator Validator<T>(ValidatorBuilder<T> builderA)
+        {
+            var builder = (ValidatorBuilder<T>)builderA;
+            if (builder.Validator._defaultCastConverter == null)
+            {
+                var genericType = typeof(T);
+                builder.ResolveAutoCast(genericType);
+            }
+
+            var initValue = builder.Validator.InitValue;
+            string initRawValue = builder.Validator.HandleRawDefault(default, initValue);
+
+            builder.Validator._value = initValue;
+            builder.Validator._rawValue = initRawValue;
+
+            return builder.Validator;
         }
     }
 }

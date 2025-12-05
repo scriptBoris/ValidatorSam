@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
@@ -25,7 +25,7 @@ namespace ValidatorSam
         /// <param name="self">builder instance</param>
         /// <param name="safeRule">function that will be called when a new value (not null) is received. If false is returned, an error will be set</param>
         /// <param name="error">the message that will be displayed if the rule function returns false</param>
-        public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilder<T?> self, RuleHandler<T> safeRule, string error)
+        public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilderBase<T?> self, RuleHandler<T> safeRule, string error)
             where T : struct
         {
             RuleHandler<T?> unsafeRule = (args) =>
@@ -34,12 +34,13 @@ namespace ValidatorSam
                 return safeRule(args2);
             };
 
-            self.Validator._rules.Add(new RuleItem<T?>(error, unsafeRule, true));
-            return self;
+            var builder = (ValidatorBuilder<T?>)self;
+            builder.Validator._rules.Add(new RuleItem<T?>(error, unsafeRule, true));
+            return builder;
         }
 
-        /// <inheritdoc cref="UsingSafeRule{T}(ValidatorBuilder{T?}, RuleHandler{T}, string)"/>
-        public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilder<T?> self, RuleHandler<T> safeRule, Func<string> getError)
+        /// <inheritdoc cref="UsingSafeRule{T}(ValidatorBuilderBase{T?}, RuleHandler{T}, string)"/>
+        public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilderBase<T?> self, RuleHandler<T> safeRule, Func<string> getError)
             where T : struct
         {
             RuleHandler<T?> unsafeRule = (args) =>
@@ -48,8 +49,9 @@ namespace ValidatorSam
                 return safeRule(args2);
             };
 
-            self.Validator._rules.Add(new DynamicRuleItem<T?>(getError, unsafeRule, true));
-            return self;
+            var builder = (ValidatorBuilder<T?>)self;
+            builder.Validator._rules.Add(new DynamicRuleItem<T?>(getError, unsafeRule, true));
+            return builder;
         }
 
         /// <summary>
@@ -62,19 +64,21 @@ namespace ValidatorSam
         /// <param name="self">builder instance</param>
         /// <param name="safeRule">function that will be called when a new value (not null) is received. If false is returned, an error will be set</param>
         /// <param name="error">the message that will be displayed if the rule function returns false</param>
-        public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilder<T?> self, RuleHandler<T> safeRule, string error)
+        public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilderBase<T?> self, RuleHandler<T> safeRule, string error)
             where T : class
         {
-            self.Validator._rules.Add(new RuleItem<T?>(error, (x) => safeRule(x!), true));
-            return self;
+            var builder = (ValidatorBuilder<T?>)self;
+            builder.Validator._rules.Add(new RuleItem<T?>(error, (x) => safeRule(x!), true));
+            return builder;
         }
 
-        /// <inheritdoc cref="UsingSafeRule{T}(ValidatorBuilder{T?}, RuleHandler{T}, string)"/>
-        public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilder<T?> self, RuleHandler<T> rule, Func<string> getError)
+        /// <inheritdoc cref="UsingSafeRule{T}(ValidatorBuilderBase{T?}, RuleHandler{T}, string)"/>
+        public static ValidatorBuilder<T?> UsingSafeRule<T>(this ValidatorBuilderBase<T?> self, RuleHandler<T> rule, Func<string> getError)
             where T : class
         {
-            self.Validator._rules.Add(new DynamicRuleItem<T?>(getError, (x) => rule(x!), true));
-            return self;
+            var builder = (ValidatorBuilder<T?>)self;
+            builder.Validator._rules.Add(new DynamicRuleItem<T?>(getError, (x) => rule(x!), true));
+            return builder;
         }
 
 #nullable disable
@@ -92,7 +96,7 @@ namespace ValidatorSam
         /// <param name="self">builder instance</param>
         /// <param name="min">minimum text length</param>
         /// <param name="max">maximum text length</param>
-        public static ValidatorBuilder<string> UsingTextLimit(this ValidatorBuilder<string> self, uint min, uint max)
+        public static ValidatorBuilder<string> UsingTextLimit(this ValidatorBuilderBase<string> self, uint min, uint max)
         {
             self.UsingPreprocessor(x =>
             {
@@ -118,12 +122,13 @@ namespace ValidatorSam
                 return PreprocessResult<string>.Ignore();
             });
 
-            return self;
+            var builder = (ValidatorBuilder<string>)self;
+            return builder;
         }
 #nullable enable
 
         /// <summary>
-        /// Creates a preprocessor that limits input values ​​to the ranges min to max.
+        /// Creates a preprocessor that limits input values ​to the ranges min to max.
         /// <br/>
         /// --- 
         /// <br/>
@@ -132,13 +137,14 @@ namespace ValidatorSam
         /// <param name="self">builder instance</param>
         /// <param name="min">minimum</param>
         /// <param name="max">maximum</param>
-        public static ValidatorBuilder<T> UsingLimitations<T>(this ValidatorBuilder<T> self, [DisallowNull]T min, [DisallowNull]T max)
+        public static ValidatorBuilder<T> UsingLimitations<T>(this ValidatorBuilderBase<T> self, [DisallowNull]T min, [DisallowNull]T max)
         {
             self.UsingPreprocessor(x =>
             {
                 return CommonLimitations<T>(x, min, max);
             });
-            return self;
+            var builder = (ValidatorBuilder<T>)self;
+            return builder;
         }
 
         private static PreprocessResult<T> CommonLimitations<T>(ValidatorPreprocessArgs<T> arg, [DisallowNull]T min, [DisallowNull] T max)
@@ -172,12 +178,13 @@ namespace ValidatorSam
         /// The culture to use for formatting. 
         /// Pass null to use CultureInfo.InvariantCulture.
         /// </param>
-        public static ValidatorBuilder<T> UsingRawValueFormat<T>(this ValidatorBuilder<T> self, string format, CultureInfo? cultureInfo = null) 
+        public static ValidatorBuilder<T> UsingRawValueFormat<T>(this ValidatorBuilderBase<T> self, string format, CultureInfo? cultureInfo = null) 
             where T : struct
         {
-            self.Validator._stringFormat = format;
-            self.Validator._cultureInfo = cultureInfo ?? CultureInfo.InvariantCulture;
-            return self;
+            var builder = (ValidatorBuilder<T>)self;
+            builder.Validator._stringFormat = format;
+            builder.Validator._cultureInfo = cultureInfo ?? CultureInfo.InvariantCulture;
+            return builder;
         }
 
         /// <summary>
@@ -191,12 +198,13 @@ namespace ValidatorSam
         /// The culture to use for formatting. 
         /// Pass null to use CultureInfo.InvariantCulture.
         /// </param>
-        public static ValidatorBuilder<T?> UsingRawValueFormat<T>(this ValidatorBuilder<T?> self, string format, CultureInfo? cultureInfo = null)
+        public static ValidatorBuilder<T?> UsingRawValueFormat<T>(this ValidatorBuilderBase<T?> self, string format, CultureInfo? cultureInfo = null)
             where T : struct
         {
-            self.Validator._stringFormat = format;
-            self.Validator._cultureInfo = cultureInfo ?? CultureInfo.InvariantCulture;
-            return self;
+            var builder = (ValidatorBuilder<T?>)self;
+            builder.Validator._stringFormat = format;
+            builder.Validator._cultureInfo = cultureInfo ?? CultureInfo.InvariantCulture;
+            return builder;
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -25,7 +25,7 @@ namespace ValidatorSam.Converters
         }
 
         /// <inheritdoc/>
-        public ConverterResult<DateTime> RawToValue(ReadOnlySpan<char> rawValue, ReadOnlySpan<char> oldRawValue, DateTime oldValue, Validator validator)
+        public ConverterResult<DateTime> RawToValue(ReadOnlySpan<char> rawValue, ReadOnlySpan<char> oldRawValue, DateTime oldValue, IValidator validator)
         {
             var culture = validator.CultureInfo ?? CultureInfo.CurrentCulture;
             var stringFormat = validator.StringFormat ?? DEFAULT_DATEFORMAT;
@@ -41,7 +41,7 @@ namespace ValidatorSam.Converters
         }
 
         /// <inheritdoc/>
-        public string ValueToRaw(DateTime newValue, Validator validator)
+        public string ValueToRaw(DateTime newValue, IValidator validator)
         {
             if (validator.StringFormat != null)
             {

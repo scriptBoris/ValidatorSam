@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
 
-namespace ValidatorSam.Core
-{
 #nullable enable
+namespace ValidatorSam
+{
     /// <summary>
     /// Converts user text input into a value of type <typeparamref name="T"/>
     /// <br/>
@@ -38,14 +38,14 @@ namespace ValidatorSam.Core
         /// <param name="oldRawValue">Previous user input text</param>
         /// <param name="oldValue">The old value that is already valid and parsed</param>
         /// <param name="validator">Invoker.</param>
-        ConverterResult<T> RawToValue(ReadOnlySpan<char> rawValue, ReadOnlySpan<char> oldRawValue, T oldValue, Validator validator);
+        ConverterResult<T> RawToValue(ReadOnlySpan<char> rawValue, ReadOnlySpan<char> oldRawValue, T oldValue, IValidator validator);
 
         /// <summary>
         /// Converts value of type (Value) into user text input (RawValue)
         /// </summary>
         /// <param name="newValue">New value</param>
         /// <param name="validator">Invoker.</param>
-        string ValueToRaw(T newValue, Validator validator);
+        string ValueToRaw(T newValue, IValidator validator);
     }
 
     /// <summary>
@@ -106,7 +106,7 @@ namespace ValidatorSam.Core
         /// </summary>
         /// <param name="value">modificated Value</param>
         /// <param name="rawValue">modificated text value (RawValue)</param>
-        public static ConverterResult<T2> Success<T2>([AllowNull]T2 value, string rawValue)
+        public static ConverterResult<T2> Success<T2>([AllowNull] T2 value, string rawValue)
         {
             return new ConverterResult<T2>
             {
@@ -173,5 +173,5 @@ namespace ValidatorSam.Core
             return new ConverterResult<T>() { ResultType = ConverterResultType.Skip };
         }
     }
-#nullable disable
 }
+#nullable disable

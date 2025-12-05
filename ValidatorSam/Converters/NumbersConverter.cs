@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -36,7 +36,7 @@ namespace ValidatorSam.Converters
         }
 
         /// <inheritdoc/>
-        public ConverterResult<T> RawToValue(ReadOnlySpan<char> rawValue, ReadOnlySpan<char> oldRaw, T oldValue, Validator validator)
+        public ConverterResult<T> RawToValue(ReadOnlySpan<char> rawValue, ReadOnlySpan<char> oldRaw, T oldValue, IValidator validator)
         {
             switch (_typeCode)
             {
@@ -62,7 +62,7 @@ namespace ValidatorSam.Converters
         }
 
         /// <inheritdoc/>
-        public string ValueToRaw(T newValue, Validator validator)
+        public string ValueToRaw(T newValue, IValidator validator)
         {
             if (newValue is IFormattable fnewValue && validator.StringFormat != null)
             {

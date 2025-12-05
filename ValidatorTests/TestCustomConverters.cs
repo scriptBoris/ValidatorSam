@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -12,7 +12,7 @@ namespace ValidatorTests
 {
     public class CityConverter : IValueRawConverter<MockCity>
     {
-        public ConverterResult<MockCity> RawToValue(ReadOnlySpan<char> rawValue, ReadOnlySpan<char> oldRawValue, MockCity oldValue, Validator validator)
+        public ConverterResult<MockCity> RawToValue(ReadOnlySpan<char> rawValue, ReadOnlySpan<char> oldRawValue, MockCity oldValue, IValidator validator)
         {
             if (!validator.Payload.TryGetPayload("items", out var payloadItems))
             {
@@ -38,7 +38,7 @@ namespace ValidatorTests
             }
         }
 
-        public string ValueToRaw(MockCity newValue, Validator validator)
+        public string ValueToRaw(MockCity newValue, IValidator validator)
         {
             return newValue.CityName;
         }
