@@ -104,6 +104,11 @@ namespace ValidatorTests
 
             Assert.AreEqual("SydneyJ", City.RawValue);
             Assert.AreEqual(null, City.Value);
+
+            City.RawValue = "Sydney";
+            Assert.AreEqual(_cities[10], City.Value);
+            City.RawValue = "";
+            Assert.AreEqual(null, City.Value);
         }
     }
 }
